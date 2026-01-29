@@ -1,108 +1,61 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+<!doctype html>
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painéis — Mobile</title>
-  <style>
-    :root{
-      --bg:#070d1b;
-      --card:#0d1730;
-      --card2:#0a1329;
-      --text:#ffffff;
-      --muted:rgba(255,255,255,.55);
-      --shadow:0 10px 30px rgba(0,0,0,.45);
-      --radius:18px;
-    }
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: radial-gradient(1200px 600px at 20% 10%, #11214a 0%, var(--bg) 55%),
-                  radial-gradient(900px 500px at 90% 30%, #0f2b3a 0%, var(--bg) 60%);
-      color:var(--text);
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
-    }
-    header{
-      padding:20px 18px 10px;
-      text-align:center;
-      font-size:20px;
-      font-weight:700;
-      letter-spacing:.2px;
-    }
-    .wrap{
-      width:min(520px, calc(100% - 32px));
-      margin:0 auto;
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-      padding:10px 0 28px;
-    }
-    a.card{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:18px 18px;
-      text-decoration:none;
-      color:inherit;
-      border-radius:var(--radius);
-      background: linear-gradient(135deg, var(--card), var(--card2));
-      box-shadow: var(--shadow);
-      border:1px solid rgba(255,255,255,.06);
-      -webkit-tap-highlight-color: transparent;
-    }
-    .icon{
-      width:38px;height:38px;
-      border-radius:12px;
-      display:grid;place-items:center;
-      background: rgba(255,255,255,.06);
-      font-size:18px;
-    }
-    .label{
-      font-size:18px;
-      font-weight:650;
-    }
-    .sub{
-      font-size:13px;
-      color:var(--muted);
-      margin-top:2px;
-    }
-    .col{
-      display:flex;
-      flex-direction:column;
-      line-height:1.1;
-    }
-    footer{
-      margin-top:auto;
-      text-align:center;
-      padding:14px 10px 18px;
-      color:var(--muted);
-      font-size:12px;
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Painéis — Comercial & Gerencial</title>
+<style>
+:root{--bg:#0b1220; --text:#e9edf7; --muted:rgba(233,237,247,.72); --border:rgba(255,255,255,.12);}
+*{box-sizing:border-box}
+body{margin:0; min-height:100vh; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; color:var(--text);
+background:radial-gradient(1200px 700px at 20% -10%, #1a2b55 0%, var(--bg) 55%), var(--bg);}
+.main{max-width:980px; margin:0 auto; padding:28px 16px 60px}
+h1{margin:0 0 6px; font-size:26px; letter-spacing:.2px}
+p{margin:0 0 18px; color:var(--muted)}
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+.card{
+  display:block; text-decoration:none; color:var(--text);
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px solid var(--border); border-radius:18px;
+  padding:18px; box-shadow:0 16px 40px rgba(0,0,0,.35);
+}
+.card h2{margin:0 0 8px; font-size:18px}
+.card .meta{color:var(--muted); font-size:13px; line-height:1.35}
+.badge{display:inline-flex; align-items:center; gap:8px; margin-top:14px;
+  padding:8px 10px; border-radius:999px; background:rgba(255,255,255,.04); border:1px solid var(--border);
+  font-weight:800; font-size:12px;
+}
+footer{margin-top:22px; color:rgba(233,237,247,.55); font-size:12px}
+@media (max-width: 820px){ .main{padding:22px 14px 54px} .grid{grid-template-columns:1fr} }
+</style>
 </head>
 <body>
-  <header>Painéis — Mobile</header>
+<div class="main">
+  <h1>Painéis</h1>
+  <p>Escolha o painel que deseja visualizar (otimizado para mobile e desktop).</p>
 
-  <div class="wrap">
+  <div class="grid">
     <a class="card" href="./comercial/">
-      <div class="icon">📊</div>
-      <div class="col">
-        <div class="label">Painel Comercial</div>
-        <div class="sub">Vendas • Metas • Ritmo diário</div>
-      </div>
+      <h2>📊 Painel Comercial</h2>
+      <div class="meta">Metas, ranking, progresso do mês e visão por semana.</div>
+      <div class="badge">Abrir</div>
+    </a>
+    <a class="card" href="./gerencial/">
+      <h2>📈 Painel Gerencial</h2>
+      <div class="meta">Margem, custos, resultado e previsibilidade de caixa.</div>
+      <div class="badge">Abrir</div>
     </a>
 
-    <a class="card" href="./gerencial/">
-      <div class="icon">📈</div>
-      <div class="col">
-        <div class="label">Painel Gerencial</div>
-        <div class="sub">Margem • Custos • Resultado</div>
-      </div>
+    <a class="card" href="./fiscal/">
+      <h2>🧾 Painel Fiscal • Contábil</h2>
+      <div class="meta">Projeção de DRE e balanço de impostos (ICMS, PIS e COFINS).</div>
+      <div class="badge">Abrir</div>
     </a>
   </div>
 
-  <footer>Atualizado em 28/01/2026</footer>
+  <footer>
+    Dica: depois de subir no GitHub, ative o GitHub Pages (Settings → Pages) para publicar.
+  </footer>
+</div>
 </body>
 </html>

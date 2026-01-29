@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Painel Fiscal • Contábil — Mobile</title>
+<style>
+:root{--bg:#0b1220; --text:#e9edf7; --muted:rgba(233,237,247,.72); --border:rgba(255,255,255,.12);
+--card:#101a33; --card2:#0e162a; --good:#41d37f; --bad:#ff5e7a; --warn:#ffd166;}
+*{box-sizing:border-box}
+body{margin:0; min-height:100vh; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; color:var(--text);
+background:radial-gradient(1200px 700px at 20% -10%, #1a2b55 0%, var(--bg) 55%),
+radial-gradient(900px 500px at 90% 25%, #0f2b3a 0%, var(--bg) 60%);}
+a{color:inherit}
+.topbar{position:sticky; top:0; z-index:50; backdrop-filter:saturate(1.2) blur(10px);
+background:linear-gradient(180deg, rgba(11,18,32,.95), rgba(11,18,32,.70)); border-bottom:1px solid rgba(255,255,255,.08);}
+.topbar .row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px;}
+.brand{display:flex; flex-direction:column; gap:2px}
+.brand b{font-size:18px; letter-spacing:.2px}
+.brand span{font-size:12px; color:var(--muted)}
+.actions{display:flex; gap:10px; align-items:center}
+.btn{border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); color:var(--text);
+padding:10px 12px; border-radius:12px; text-decoration:none; font-weight:600; font-size:13px;}
+select{border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); color:var(--text);
+padding:10px 12px; border-radius:12px; font-weight:600; font-size:13px;}
+.main{width:min(1100px, calc(100% - 28px)); margin:0 auto; padding:16px 0 22px;}
+.grid{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px;}
+@media (max-width: 980px){.grid{grid-template-columns:repeat(2, minmax(0,1fr));}}
+.card{background:linear-gradient(135deg, var(--card), var(--card2)); border:1px solid rgba(255,255,255,.08);
+border-radius:18px; padding:14px 14px 12px; box-shadow:0 10px 28px rgba(0,0,0,.35);}
+.kpi-title{font-size:12px; color:var(--muted); margin-bottom:6px; letter-spacing:.2px}
+.kpi-value{font-size:26px; font-weight:800; letter-spacing:.2px}
+.kpi-sub{font-size:12px; color:var(--muted); margin-top:6px}
+.good{color:var(--good)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+.section{margin-top:14px}
+.h2{display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin:14px 2px 8px}
+.h2 h2{margin:0; font-size:16px}
+.h2 .hint{font-size:12px; color:var(--muted)}
+.table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:18px; border:1px solid rgba(255,255,255,.08);}
+.table th,.table td{padding:12px 12px; border-bottom:1px solid rgba(255,255,255,.07);}
+.table th{font-size:12px; color:var(--muted); text-align:left; background:rgba(255,255,255,.03)}
+.table td{font-size:13px}
+.table tr:last-child td{border-bottom:none}
+.right{text-align:right}
+.taxgrid{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px}
+@media (max-width: 980px){.taxgrid{grid-template-columns:1fr;}}
+.hr{height:1px; background:rgba(255,255,255,.08); margin:10px 0 6px}
+.small{font-size:12px; color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="row">
+    <div class="brand">
+      <b>Painel Fiscal • Contábil</b>
+      <span id="subtitle">Período: — • Projeção automática</span>
+    </div>
+    <div class="actions">
+      <a class="btn" href="../">⬅︎ Menu</a>
+      <select id="periodSelect" aria-label="Período"></select>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="grid" id="kpis"></div>
+
+  <div class="section">
+    <div class="h2">
+      <h2>DRE Fiscal — Realizado x Projetado</h2>
+      <div class="hint">Projeção = realizado × (dias do mês ÷ dia de corte)</div>
+    </div>
+    <table class="table" id="dreTable"></table>
+  </div>
+
+  <div class="section">
+    <div class="h2">
+      <h2>Balanço de Impostos — Realizado x Projetado</h2>
+      <div class="hint">ICMS • PIS • COFINS (débito x crédito)</div>
+    </div>
+    <div class="taxgrid" id="taxCards"></div>
+  </div>
+
+  <div class="section">
+    <div class="h2">
+      <h2>Alertas</h2>
+      <div class="hint">Sinais para o caixa</div>
+    </div>
+    <div class="card" id="alerts"></div>
+    <div class="small" style="margin:10px 4px 0">Relatório atualizado | <span id="updatedAt"></span></div>
+  </div>
+</div>
+
+<script>
+const DATA = {"periods": [{"key": "2026-01", "label": "Jan/2026", "daysInMonth": 31}], "defaultPeriod": "2026-01", "updatedAt": "28/01/2026", "dre": {"receitaBruta": 3296897.3, "devolucoes": 40000.0, "icms": 428085.2, "pis": 46378.83, "cofins": 213623.88, "difal": 2168.14, "st": 9927.66, "receitaLiquida": 2556713.59, "cmv": 2147487.44, "despesasOperacionais": 307676.45, "resultadoFinal": 101549.71, "percent": {"devolucoes": 0.0121, "icms": 0.1298, "pis": 0.0141, "cofins": 0.0648, "difal": 0.0007, "st": 0.003, "receitaLiquida": 0.7755, "cmv": 0.5352, "lucroBrutoOperacional": 0.1241, "despesasOperacionais": 0.0933, "resultadoFinal": 0.0308}}, "impostos": {"vendasBruto": 3286969.64, "comprasBruto": 2902599.51, "icms": {"debito": 428085.2, "credito": 341595.37, "creditoMesAnterior": 77692.49, "saldoFinal": -8797.34}, "pis": {"debito": 46378.83, "credito": 42256.57, "creditoMesAnterior": 0.0, "saldoFinal": -4122.26}, "cofins": {"debito": 213623.88, "credito": 194636.31, "creditoMesAnterior": 0.0, "saldoFinal": -18987.57}}};
+
+function brl(v){
+  const n = Number(v||0);
+  return n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+}
+function pct(v){
+  if(v===null||v===undefined) return '—';
+  return (Number(v)*100).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '%';
+}
+function parseBRDate(s){
+  const m = String(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if(!m) return null;
+  const dd = Number(m[1]), mm = Number(m[2]), yy = Number(m[3]);
+  return new Date(yy, mm-1, dd);
+}
+function daysInMonth(y,m){
+  return new Date(y, m+1, 0).getDate();
+}
+function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+function build(periodKey){
+  const period = DATA.periods.find(p=>p.key===periodKey) || DATA.periods[0];
+  const updated = parseBRDate(DATA.updatedAt) || new Date();
+  const totalDays = period.daysInMonth || daysInMonth(updated.getFullYear(), updated.getMonth());
+  const cutoffDay = clamp(updated.getDate(), 1, totalDays);
+  const fator = totalDays / cutoffDay;
+
+  document.getElementById('updatedAt').textContent = DATA.updatedAt || '—';
+  document.getElementById('subtitle').textContent = `Período: ${period.label} • Dia de corte: ${cutoffDay}/${totalDays} • Fator: ${fator.toFixed(2)}x`;
+
+  const dre = DATA.dre;
+  const impostos = DATA.impostos;
+
+  const impostosSaldo = ['icms','pis','cofins'].reduce((acc,k)=>acc + (impostos[k]?.saldoFinal||0), 0);
+  const impostosAPagar = Math.max(0, -impostosSaldo);
+
+  const receitaLiquidaProj = dre.receitaLiquida * fator;
+  const resultadoProj = dre.resultadoFinal * fator;
+  const cargaTrib = (dre.icms + dre.pis + dre.cofins + dre.difal + dre.st) / dre.receitaBruta;
+
+  const kpis = [
+    {title:'Resultado fiscal (real)', value: brl(dre.resultadoFinal), sub:`Margem: ${pct(dre.percent?.resultadoFinal ?? (dre.resultadoFinal/dre.receitaBruta))}`, cls: dre.resultadoFinal>=0?'good':'bad'},
+    {title:'Resultado fiscal (proj.)', value: brl(resultadoProj), sub:`Projeção com fator ${fator.toFixed(2)}x`, cls: resultadoProj>=0?'good':'bad'},
+    {title:'Impostos a pagar (real)', value: brl(impostosAPagar), sub:'ICMS + PIS + COFINS (saldo final)', cls: impostosAPagar>0?'bad':'good'},
+    {title:'Carga tributária', value: pct(cargaTrib), sub:'(ICMS+PIS+COFINS+DIFAL+ST) / Receita Bruta', cls: cargaTrib>0.20?'warn':''},
+    {title:'Receita líquida (real)', value: brl(dre.receitaLiquida), sub:`%: ${pct(dre.percent?.receitaLiquida ?? (dre.receitaLiquida/dre.receitaBruta))}`, cls:''},
+    {title:'Receita líquida (proj.)', value: brl(receitaLiquidaProj), sub:'Projeção do mês', cls:''},
+    {title:'CMV (real)', value: brl(dre.cmv), sub:`%: ${pct(dre.percent?.cmv ?? (dre.cmv/dre.receitaBruta))}`, cls:''},
+    {title:'Despesas (real)', value: brl(dre.despesasOperacionais), sub:`%: ${pct(dre.percent?.despesasOperacionais ?? (dre.despesasOperacionais/dre.receitaBruta))}`, cls:''},
+  ];
+
+  document.getElementById('kpis').innerHTML = kpis.map(k=>`
+    <div class="card">
+      <div class="kpi-title">${k.title}</div>
+      <div class="kpi-value ${k.cls||''}">${k.value}</div>
+      <div class="kpi-sub">${k.sub||''}</div>
+    </div>
+  `).join('');
+
+  const rows = [
+    ['Receita Bruta', dre.receitaBruta, dre.receitaBruta*fator, null],
+    ['Devoluções', -dre.devolucoes, -dre.devolucoes*fator, dre.percent?.devolucoes],
+    ['ICMS', -dre.icms, -dre.icms*fator, dre.percent?.icms],
+    ['PIS', -dre.pis, -dre.pis*fator, dre.percent?.pis],
+    ['COFINS', -dre.cofins, -dre.cofins*fator, dre.percent?.cofins],
+    ['DIFAL', -dre.difal, -dre.difal*fator, dre.percent?.difal],
+    ['ST', -dre.st, -dre.st*fator, dre.percent?.st],
+    ['Receita Líquida', dre.receitaLiquida, dre.receitaLiquida*fator, dre.percent?.receitaLiquida],
+    ['CMV', -dre.cmv, -dre.cmv*fator, dre.percent?.cmv],
+    ['Lucro Bruto Operacional', (dre.receitaLiquida - dre.cmv), (dre.receitaLiquida - dre.cmv)*fator, dre.percent?.lucroBrutoOperacional],
+    ['Despesas Operacionais', -dre.despesasOperacionais, -dre.despesasOperacionais*fator, dre.percent?.despesasOperacionais],
+    ['Resultado Final do Período', dre.resultadoFinal, dre.resultadoFinal*fator, dre.percent?.resultadoFinal],
+  ];
+
+  document.getElementById('dreTable').innerHTML = `
+    <thead>
+      <tr>
+        <th>Conta</th>
+        <th class="right">Realizado</th>
+        <th class="right">Projetado</th>
+        <th class="right">% RB</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map(r=>{
+        const name=r[0], real=r[1], proj=r[2], p=r[3];
+        const cls = (name.includes('Resultado') || name.includes('Lucro')) ? (real>=0?'good':'bad') : '';
+        return `<tr>
+          <td><b>${name}</b></td>
+          <td class="right ${cls}">${brl(real)}</td>
+          <td class="right ${cls}">${brl(proj)}</td>
+          <td class="right">${p!==null && p!==undefined ? pct(p) : '—'}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  `;
+
+  const taxOrder = [['ICMS','icms'],['PIS','pis'],['COFINS','cofins']];
+  document.getElementById('taxCards').innerHTML = taxOrder.map(t=>{
+    const label=t[0], key=t[1];
+    const x = impostos[key];
+    const saldo = Number(x?.saldoFinal||0);
+    const saldoProj = saldo * fator;
+    const cls = saldo<0 ? 'bad' : (saldo>0?'good':'');
+    const clsProj = saldoProj<0 ? 'bad' : (saldoProj>0?'good':'');
+    const creditoTotal = (Number(x?.credito||0) + Number(x?.creditoMesAnterior||0));
+    const creditoTotalProj = creditoTotal * fator;
+    return `
+      <div class="card">
+        <div class="kpi-title">${label}</div>
+        <div class="kpi-value ${cls}">${brl(saldo)}</div>
+        <div class="kpi-sub">Saldo final (real)</div>
+        <div class="hr"></div>
+        <div class="small">Débito (vendas): <b>${brl(x?.debito||0)}</b></div>
+        <div class="small">Crédito (compras): <b>${brl(x?.credito||0)}</b></div>
+        <div class="small">Crédito mês anterior: <b>${brl(x?.creditoMesAnterior||0)}</b></div>
+        <div class="small">Crédito total: <b>${brl(creditoTotal)}</b></div>
+        <div class="hr"></div>
+        <div class="small">Saldo projetado: <b class="${clsProj}">${brl(saldoProj)}</b></div>
+        <div class="small">Crédito total proj.: <b>${brl(creditoTotalProj)}</b></div>
+      </div>
+    `;
+  }).join('');
+
+  const impostosAPagarProj = Math.max(0, -(impostosSaldo*fator));
+  const alerts = [];
+  if(impostosAPagar>0){
+    alerts.push(`🔴 Impostos a pagar (real): <b>${brl(impostosAPagar)}</b> — impacto direto no caixa.`);
+  } else {
+    alerts.push('🟢 Sem impostos a pagar no consolidado (real).');
+  }
+  alerts.push(`🔮 Impostos a pagar (projeção): <b>${brl(impostosAPagarProj)}</b> considerando o ritmo atual.`);
+  if(cargaTrib > 0.22) alerts.push(`⚠️ Carga tributária está alta (${pct(cargaTrib)}). Verifique devoluções, mix de vendas e créditos de compras.`);
+  alerts.push(`ℹ️ Método: projeção linear por dias corridos (corte em ${cutoffDay}/${totalDays}).`);
+  document.getElementById('alerts').innerHTML = alerts.map(a=>`<div style="margin:6px 0; font-size:13px; color:var(--text)">${a}</div>`).join('');
+}
+
+(function init(){
+  const sel = document.getElementById('periodSelect');
+  sel.innerHTML = DATA.periods.map(p=>`<option value="${p.key}">${p.label}</option>`).join('');
+  sel.value = DATA.defaultPeriod || DATA.periods[0].key;
+  sel.addEventListener('change', ()=>build(sel.value));
+  build(sel.value);
+})();
+</script>
+
+</body>
+</html>
