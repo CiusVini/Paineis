@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>Painel Gerencial — Diretoria — Diretoria (Margem, Custos, Resultado)</title>
+<style>
+  :root{
+    --bg:#0b1020; --card:#111a33; --card2:#0f1730; --text:#e9edf7; --muted:#a8b1c7;
+    --ok:#35d07f; --warn:#ffcc66; --bad:#ff6b6b; --line:#223057; --accent:#7aa2ff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: radial-gradient(1200px 800px at 20% 10%, #1a2a6f33, transparent 60%),
+                radial-gradient(1000px 700px at 90% 20%, #7aa2ff22, transparent 55%),
+                var(--bg);
+    color:var(--text);
+  }
+  header{
+    position:sticky; top:0; z-index:10;
+    backdrop-filter: blur(10px);
+    background: linear-gradient(to bottom, rgba(11,16,32,.92), rgba(11,16,32,.65));
+    border-bottom: 1px solid rgba(122,162,255,.18);
+  }
+  .wrap{max-width:1200px; margin:0 auto; padding:18px 16px;}
+  .topbar{display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;}
+  .brand{display:flex; gap:10px; align-items:center;}
+  .dot{
+    width:14px; height:14px; border-radius:999px; background:var(--accent);
+    box-shadow: 0 0 0 4px rgba(122,162,255,.15);
+  }
+  h1{font-size:18px; margin:0; letter-spacing:.2px;}
+  .sub{font-size:12px; color:var(--muted); margin-top:2px;}
+  .controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  select, button{
+    background: rgba(17,26,51,.75);
+    color: var(--text);
+    border: 1px solid rgba(122,162,255,.22);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 13px;
+    outline:none;
+  }
+  button{cursor:pointer}
+  button:hover{border-color: rgba(122,162,255,.5)}
+  main{padding: 14px 0 28px;}
+  .grid{display:grid; gap:12px;}
+  .kpis{grid-template-columns: repeat(12, 1fr);}
+  .span-2{grid-column: span 2;}
+  .card{
+    background: linear-gradient(180deg, rgba(17,26,51,.92), rgba(15,23,48,.86));
+    border: 1px solid rgba(122,162,255,.16);
+    border-radius: 18px;
+    padding: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    min-height: 84px;
+  }
+  .span-3{grid-column: span 3;}
+  .span-4{grid-column: span 4;}
+  .span-5{grid-column: span 5;}
+  .span-6{grid-column: span 6;}
+  .span-7{grid-column: span 7;}
+  .span-8{grid-column: span 8;}
+  .span-12{grid-column: span 12;}
+
+  .label{color:var(--muted); font-size:12px;}
+  .value{font-size:22px; font-weight:700; margin-top:6px;}
+  .mini{font-size:12px; color:var(--muted); margin-top:6px; display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  .pill{
+    font-size:11px; padding:4px 8px; border-radius:999px;
+    border:1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.06);
+  }
+  .pill.ok{border-color: rgba(53,208,127,.35); color: #b7f7d2;}
+  .pill.warn{border-color: rgba(255,204,102,.35); color: #ffe4b3;}
+  .pill.bad{border-color: rgba(255,107,107,.35); color: #ffd0d0;}
+  /* Semáforo (Resultado Operacional) */
+  .semaforo-ok .value{color: var(--ok);}
+  .semaforo-bad .value{color: var(--bad);}
+  .semaforo-warn .value{color: var(--warn);}
+  .semaforo-ok{border-color: rgba(53,208,127,.28);}
+  .semaforo-bad{border-color: rgba(255,107,107,.28);}
+  .semaforo-warn{border-color: rgba(255,204,102,.28);}
+
+  .section-title{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    margin: 16px 0 10px;
+  }
+  .section-title h2{margin:0; font-size:14px; letter-spacing:.2px;}
+  .section-title .hint{font-size:12px; color:var(--muted);}
+  .tables{grid-template-columns: repeat(12, 1fr);}
+  table{width:100%; border-collapse:collapse; overflow:hidden; border-radius:14px;}
+  th,td{padding:10px 10px; text-align:left; border-bottom: 1px solid rgba(122,162,255,.12); font-size:13px;}
+  th{color: var(--muted); font-weight:600; background: rgba(122,162,255,.06);}
+  tr:hover td{background: rgba(122,162,255,.04);}
+  .right{text-align:right;}
+  .center{text-align:center;}
+  .progress{
+    height:10px; border-radius:999px; background: rgba(255,255,255,.08);
+    overflow:hidden; border: 1px solid rgba(255,255,255,.08);
+  }
+  .bar{height:100%; width:0%; border-radius:999px; background: linear-gradient(90deg, rgba(122,162,255,.95), rgba(53,208,127,.85));}
+  .badbar{background: linear-gradient(90deg, rgba(255,107,107,.95), rgba(255,204,102,.85));}
+  .note{
+    color: var(--muted); font-size:12px; line-height:1.4;
+  }
+  .two{
+    display:grid; grid-template-columns: 1fr 1fr; gap:12px;
+  }
+  @media (max-width: 980px){
+    .span-3,.span-4,.span-5,.span-6,.span-7,.span-8{grid-column: span 12;}
+    .two{grid-template-columns: 1fr;}
+  }
+
+  .sim-grid{display:grid; grid-template-columns: repeat(12,1fr); gap:12px;}
+  .range{width:100%}
+  .alert{
+    border-radius:16px; padding:12px 14px; border:1px solid rgba(255,107,107,.35);
+    background: rgba(255,107,107,.10);
+  }
+  .alert h3{margin:0 0 6px 0; font-size:14px}
+  .alert ul{margin:6px 0 0 18px; padding:0; color: rgba(233,237,247,.85); font-size:13px}
+  .kpi-rows{display:flex; flex-direction:column; gap:6px; margin-top:8px}
+  .kpi-row{display:flex; justify-content:space-between; gap:10px; font-size:13px; color: rgba(233,237,247,.88)}
+  .kpi-row span:first-child{color: var(--muted)}
+  .status-ok{color:#b7f7d2}
+  .status-bad{color:#ffd0d0}
+  /* Ajuste fino de alinhamento do DRE */
+  .dre-panel{
+    margin-top:0;
+    padding-top:14px;
+    padding-bottom:14px;
+  }
+
+  .divider{height:1px;background:rgba(255,255,255,.08);margin:12px 0;}
+  table.proj-table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:12px;}
+  table.proj-table thead th{position:sticky; top:0;}
+  .proj-summary{font-size:12px; color:var(--muted); display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  .proj-scenarios{margin-top:10px}
+  .scenario-grid{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px}
+  @media (max-width: 1100px){ .scenario-grid{grid-template-columns:1fr} }
+  .scenario-card{background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:10px 12px}
+  .scenario-top{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px}
+  .scenario-title{font-weight:800; font-size:13px}
+  .scenario-add{font-size:18px; font-weight:900; letter-spacing:.2px}
+  .scenario-sub{font-size:12px; color:var(--muted); margin-top:2px}
+  .scenario-badge{font-size:11px; font-weight:800; padding:4px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.10)}
+  .scenario-badge.ok{background:rgba(46, 204, 113,.15); color:var(--good); border-color:rgba(46,204,113,.25)}
+  .scenario-badge.warn{background:rgba(255, 204, 102,.14); color:var(--warn); border-color:rgba(255,204,102,.22)}
+  .scenario-badge.bad{background:rgba(255, 107, 107,.12); color:var(--bad); border-color:rgba(255,107,107,.22)}
+
+
+  .col-stack{display:flex; flex-direction:column; gap:12px;}
+  .col-stack .card{width:100%;}
+
+/* --- Cenários (objetivo, 2 cards) --- */
+#projScenarios .scenario-grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap:14px;
+}
+@media (max-width: 900px){
+  #projScenarios .scenario-grid{ grid-template-columns: 1fr; }
+}
+#projScenarios .scenario-sub{ opacity:.9; }
+
+
+.card-resultado {
+  margin-bottom: 18px;
+}
+
+
+.card-projecao {
+  margin-top: 24px;
+}
+
+
+
+/* --- Alavancas de Resultado --- */
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
+@media (max-width: 980px){.side-by-side{grid-template-columns:1fr}}
+.alav-header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.alav-title{font-size:13px;color:var(--muted)}
+.alav-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.alav-rows{margin-top:10px;display:flex;flex-direction:column;gap:10px}
+.alav-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.alav-left{display:flex;gap:8px;flex-direction:column}
+.alav-left b{font-weight:700}
+.alav-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;text-align:right}
+.alav-note{margin-top:12px;font-size:12px;color:var(--muted);line-height:1.35}
+.badge-mini{padding:5px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:11px;white-space:nowrap}
+.badge-ok{border-color:rgba(52,211,153,.35);color:#b7f7d2}
+.badge-warn{border-color:rgba(250,204,21,.35);color:#ffe9b3}
+.badge-bad{border-color:rgba(248,113,113,.35);color:#ffd0d0}
+
+
+/* Dual chart (R$ + Ton) */
+.dualCharts{display:flex; gap: 22px; align-items:stretch; height:100%;}
+.miniChart{flex:1; min-width:0; display:flex; flex-direction:column;}
+.miniTitle{font-size:12px; color:rgba(233,237,247,.70); margin:0 0 6px 0;}
+/* Faz os gráficos ocuparem o espaço vertical livre do card */
+#barChartWrap, #tonChartWrap{flex:1; min-height:280px; height:100%;}
+@media (max-width: 980px){
+  .dualCharts{flex-direction:column;}
+}
+
+/* Fix label clipping on family charts */
+.dualCharts, .chartWrap, .chart, .chart svg { overflow: visible !important; }
+
+
+  /* --- Simplificação: painel de caixa --- */
+  .note{margin-top:10px; font-size:12px; color:var(--muted);}
+  .panel{
+    margin-top:14px;
+    background: linear-gradient(180deg, rgba(17,26,51,.92), rgba(15,23,48,.92));
+    border: 1px solid rgba(122,162,255,.18);
+    border-radius: 18px;
+    padding: 14px 14px 10px;
+    box-shadow: 0 14px 30px rgba(0,0,0,.25);
+  }
+  .panel h2{margin:0 0 6px; font-size:15px; letter-spacing:.2px}
+  .panel .subtitle{margin:0 0 12px; color:var(--muted); font-size:12px}
+  table.clean-table{width:100%; border-collapse: collapse; font-size:13px; overflow:hidden; border-radius: 14px;}
+  .clean-table th, .clean-table td{padding:10px 10px; border-bottom: 1px solid rgba(34,48,87,.75); text-align:right;}
+  .clean-table th:first-child, .clean-table td:first-child{text-align:left;}
+  .clean-table thead th{color:var(--muted); font-weight:600; background: rgba(9,14,30,.55);}
+  .clean-table tbody tr:hover{background: rgba(122,162,255,.06);}
+  .clean-table .total td{font-weight:700;}
+
+
+.comissaria,
+.comissaria td {
+  color: var(--warn);
+  font-weight: 600;
+}
+.comissaria:hover td {
+  background: rgba(255, 204, 102, 0.08);
+}
+
+</style>
+<style>
+.dre-positive {
+  color: #2ecc71;
+  font-weight: 700;
+}
+.dre-negative {
+  color: #e74c3c;
+  font-weight: 700;
+}
+
+/* Fix label clipping on family charts */
+.dualCharts, .chartWrap, .chart, .chart svg { overflow: visible !important; }
+
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const el = document.getElementById("dreResultadoFinal");
+  if (!el) return;
+
+  const value = el.innerText
+    .replace("R$", "")
+    .replace(/\./g, "")
+    .replace(",", ".")
+    .trim();
+
+  const num = parseFloat(value);
+
+  if (!isNaN(num)) {
+    el.classList.add(num >= 0 ? "dre-positive" : "dre-negative");
+  }
+});
+
+function calcularTotalGeralProjecao() {
+  const rows = [...document.querySelectorAll('table tbody tr')];
+  const contasValidas = ['Opex','Impostos','Juros e Tarifas','Matéria-prima','Mão de obra'];
+  let total = 0;
+  rows.forEach(r => {
+    const nome = r.querySelector('td')?.innerText?.trim();
+    if (contasValidas.includes(nome)) {
+      const val = r.querySelector('td:last-child')?.innerText || '0';
+      total += parseBRL(val);
+    }
+  });
+  return total;
+}
+
+</script>
+<style>
+/* Ajuste fino — Alavancas de Resultado */
+.alavancas-card {
+  font-size: 14px;
+}
+.alavancas-card h3,
+.alavancas-card .alav-title {
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+.alavancas-card .alav-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+.alavancas-card .alav-item:not(:last-child) {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.alavancas-card .alav-value {
+  font-size: 15px;
+  font-weight: 600;
+}
+.alavancas-card .badge {
+  margin-left: 6px;
+}
+
+/* Fix label clipping on family charts */
+.dualCharts, .chartWrap, .chart, .chart svg { overflow: visible !important; }
+
+</style>
+<style>
+/* Ajuste estético: alinhar altura do card de Alavancas ao DRE */
+.alavancas-card {
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Fix label clipping on family charts */
+.dualCharts, .chartWrap, .chart, .chart svg { overflow: visible !important; }
+
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<div class="topbar">
+<div class="brand">
+<div class="dot"></div>
+<div>
+<h1>Painel Gerencial — Diretoria</h1>
+<div class="sub" id="subtitle">Metas • Margem • Custos • Resultado • Ações</div>
+</div>
+</div>
+<div class="controls">
+<select aria-label="Mês" id="periodSelect">
+<option value="jan26">Jan/2026</option>
+</select>
+<select aria-label="Visão" id="viewSelect">
+<option value="mensal">Visão mensal</option>
+</select>
+
+<button id="fullscreenBtn" title="Tela cheia">Tela cheia</button>
+</div>
+</div>
+</div>
+</header>
+<main class="wrap">
+<div class="grid kpis" id="kpiGrid"></div>
+<div class="note" id="updatedAt"></div>
+<section class="panel" id="cashPanel">
+<h2>Previsibilidade de Caixa — Mês Corrente</h2>
+
+<table aria-label="Previsibilidade de caixa" class="clean-table">
+<thead>
+<tr>
+<th>Conta</th>
+<th>Orçado</th>
+<th>Pago</th>
+<th>A pagar</th>
+<th>Projeção do mês</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opex</td>
+<td id="cash_opex_orcado">—</td>
+<td id="cash_opex_pago">—</td>
+<td id="cash_opex_apagar">—</td>
+<td id="cash_opex_proj">—</td>
+</tr>
+<tr>
+<td>Impostos</td>
+<td id="cash_impostos_orcado">—</td>
+<td id="cash_impostos_pago">—</td>
+<td id="cash_impostos_apagar">—</td>
+<td id="cash_impostos_proj">—</td>
+</tr>
+<tr>
+<td>Juros e Tarifas</td>
+<td id="cash_juros_orcado">—</td>
+<td id="cash_juros_pago">—</td>
+<td id="cash_juros_apagar">—</td>
+<td id="cash_juros_proj">—</td>
+</tr>
+<tr>
+<td>Matéria-prima</td>
+<td id="cash_mp_orcado">R$ 3.300.000,00</td>
+<td id="cash_mp_pago">—</td>
+<td id="cash_mp_apagar">—</td>
+<td id="cash_mp_proj">—</td>
+</tr>
+<tr>
+<td>Mão de obra</td>
+<td id="cash_mo_orcado">R$ 200.000,00</td>
+<td id="cash_mo_pago">—</td>
+<td id="cash_mo_apagar">—</td>
+<td id="cash_mo_proj">—</td>
+</tr>
+<tr class="total">
+<td>Total geral</td>
+<td id="cash_total_orcado">R$ 3.500.000,00</td>
+<td id="cash_total_pago">—</td>
+<td id="cash_total_apagar">—</td>
+<td id="cash_total_proj">—</td>
+</tr>
+</tbody>
+<tr class="comissaria"><td>Comissária</td><td>—</td><td>R$ 1.467.106,78</td><td>R$ 108.056,34</td><td>R$ 1.575.163,12</td></tr></table>
+</section>
+<div class="panel" id="cashResumePanel" style="margin-top:16px;">
+  <div class="panel-header" style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+    <div>
+      <div class="panel-title" style="font-size:18px; font-weight:800;">Resumo de Caixa do Mês</div>
+      <div class="panel-subtitle" style="opacity:.75; margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:14px; display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
+    <div style="border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:12px; background:rgba(255,255,255,.03);">
+      <div style="font-size:12px; opacity:.75;">Total de despesas do mês (Pago + A pagar)</div>
+      <div id="simContasMes" style="margin-top:4px; font-size:20px; font-weight:900;">—</div>
+    </div>
+    <div style="border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:12px; background:rgba(255,255,255,.03);">
+      <div style="font-size:12px; opacity:.75;">Faturamento realizado no mês</div>
+      <div id="simFatTotal2" style="margin-top:4px; font-size:20px; font-weight:900;">—</div>
+    </div>
+    <div style="border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:12px; background:rgba(255,255,255,.03);">
+      <div style="font-size:12px; opacity:.75;">Saldo de caixa (Faturamento - Despesas)</div>
+      <div id="simSaldoCaixa" style="margin-top:4px; font-size:20px; font-weight:900;">—</div>
+    </div>
+  </div>
+
+  <div id="cashStatusBox" style="margin-top:12px; padding:12px 14px; border-radius:14px; border:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.18); display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+    <div>
+      <div style="font-size:12px; opacity:.75;">Status do caixa</div>
+      <div id="simStatusText" style="margin-top:2px; font-weight:900;">—</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:12px; opacity:.75;">Risco</span>
+      <span id="simRiscoCaixaTxt" style="font-weight:900;">—</span>
+    </div>
+  </div>
+</div></div>
+</div>
+</main>
+<script>
+const DATA = {"jan26": {"label": "jan/26", "updatedAt": "Relatório atualizado | 29/01/2026 10:44", "mensal": {"pesoRendimentosKg": {"Cobre": 25943, "Barras": 23895.7, "Alumínio": 2204, "Total": 52043}, "totals": {"meta": 4170000.0, "realizado": 3286969.64, "pct": 78.8, "falta": 883030.36, "kg": 52043}, "families": [{"name": "Cobre", "meta": 3000000.0, "realizado": 2484758.3, "pct": 82.8, "falta": 515241.7, "kg": 25943}, {"name": "Barras", "meta": 1000000.0, "realizado": 730333.84, "pct": 73.0, "falta": 269666.16, "kg": 23895.7}, {"name": "Alumínio", "meta": 170000.0, "realizado": 71877.5, "pct": 42.3, "falta": 98122.5, "kg": 2204}, {"name": "Total", "meta": 4170000.0, "realizado": 3286969.64, "pct": 78.8, "falta": 883030.36, "kg": 52043}], "margins": [{"name": "Cobre", "precoMedio": 95.78, "lucroBruto": 285110.41, "margemKg": 10.99}, {"name": "Barras", "precoMedio": 30.56, "lucroBruto": 142980.05, "margemKg": 5.98}, {"name": "Alumínio", "precoMedio": 32.61, "lucroBruto": 13069.84, "margemKg": 5.93}, {"name": "Total", "precoMedio": null, "lucroBruto": 441160.3, "margemKg": 8.48}], "despesas": [{"name": "Opex", "orcado": 300000.0, "pago": 220999.24, "pct": 74.0, "custoKg": 4.25, "extra": "A pagar 32.378,74"}, {"name": "Impostos", "orcado": 35000.0, "pago": 38154.75, "pct": 109.0, "custoKg": 0.73, "extra": "A pagar 0,00"}, {"name": "Juros e Tarifas", "orcado": 115000.0, "pago": 48522.46, "pct": 42.0, "custoKg": 0.93, "extra": "A pagar 50.000,00"}, {"name": "Total Operação", "orcado": 450000.0, "pago": 307676.45, "pct": 68.0, "custoKg": 5.91, "extra": "A pagar 82.378,74"}], "cpv": {"materiaPrima": {"orcado": 3300000.0, "pago": 1967470.91, "aPagar": 310103.68, "custoKg": 37.8}, "maoDeObra": {"orcado": 200000.0, "pago": 60012.5, "aPagar": 0.0, "custoKg": 1.15}, "total": {"orcado": 3500000.0, "pago": 3494590.19, "aPagar": 418160.02, "custoKg": 67.15}}, "projecao": {"grossMarginPct": 0.13, "despesasOper": {"pago": 307676.45, "aPagar": 82378.74, "projMes": 390055.19}, "cpv": {"pago": 3494590.19, "aPagar": 418160.02, "projMes": 3912750.21}, "total": {"pago": 3802266.64, "aPagar": 500538.76, "projMes": 4302805.4}, "faturamentoBreakEven": 0.0, "faturamentoAdicional": 0.0}, "resultado": {"lucroBrutoPrev": 528500.0, "lucroBrutoReal": 441160.3, "margemKgPrev": 7.0, "margemKgReal": 8.48, "custoOperPrev": 450000.0, "custoOperReal": 307676.45, "custoKgPrev": 5.96, "custoKgReal": 5.91, "netPrev": 78500.0, "netReal": 133483.85, "netKgPrev": 1.04, "netKgReal": 2.56}}}};
+
+
+function brl(v){
+  if(v === null || v === undefined || Number.isNaN(v)) return "—";
+  return new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(v);
+}
+function num(v, dec=0){
+  if(v === null || v === undefined || Number.isNaN(v)) return "—";
+  return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
+}
+function parseBRNumber(s){
+  if(!s) return null;
+  const m = String(s).match(/([\d\.]+,\d{2})/);
+  if(!m) return null;
+  return Number(m[1].replace(/\./g,'').replace(',','.'));
+}
+function setText(id, txt){
+  const el = document.getElementById(id);
+  if(el) el.textContent = txt;
+}
+function fillCashRow(prefix, row){
+  // row: { orcado, pago, aPagar, projMes }
+  setText(`cash_${prefix}_orcado`, row.orcado != null ? brl(row.orcado) : "—");
+  setText(`cash_${prefix}_pago`, brl(row.pago));
+  setText(`cash_${prefix}_apagar`, brl(row.aPagar));
+  setText(`cash_${prefix}_proj`, brl(row.projMes));
+}
+
+let autoTimer = null;
+let autoOn = true;
+
+function render(){
+  const periodKey = document.getElementById('periodSelect').value;
+  const viewKey = document.getElementById('viewSelect').value; // mensal | anual
+  const period = DATA[periodKey];
+  const data = period[viewKey];
+
+  // Subtítulo
+  const subtitle = document.getElementById('subtitle');
+  if(subtitle){
+    subtitle.textContent = `Período: ${period.label} • ${viewKey === "mensal" ? "Visão mensal" : "Visão anual"}`;
+  }
+
+  // KPI (4 cards)
+  const kpiGrid = document.getElementById('kpiGrid');
+  kpiGrid.innerHTML = "";
+  const t = data.totals;
+
+  const pesoTotalKg = (data.pesoRendimentosKg && typeof data.pesoRendimentosKg.Total === "number")
+    ? data.pesoRendimentosKg.Total
+    : null;
+
+  const kpis = [
+    { key:"fat", label:"Faturamento bruto", value: brl(t.realizado), mini: pesoTotalKg!=null ? `Peso total: ${num(pesoTotalKg,0)} kg` : `Peso total: —`, span:"span-3" },
+    { key:"lb",  label:"Lucro Bruto",       value: brl(data.resultado.lucroBrutoReal), mini:`Margem/kg: ${brl(data.resultado.margemKgReal)}`, span:"span-3" },
+    { key:"cop", label:"Custo de operação", value: brl(data.resultado.custoOperReal),  mini:`Custo/kg: ${brl(data.resultado.custoKgReal)}`, span:"span-3" },
+    { key:"res", label:"Resultado operacional", value: brl(data.resultado.netReal),    mini:`Margem/kg: ${brl(data.resultado.netKgReal)}`, span:"span-3" },
+  ];
+
+  kpis.forEach(k => {
+    const d = document.createElement('div');
+    if(k.key === "res"){
+      const v = Number(data.resultado.netReal || 0);
+      d.className = `card ${k.span} ${v >= 0 ? "semaforo-ok" : "semaforo-bad"}`;
+    } else {
+      d.className = `card ${k.span}`;
+    }
+    d.innerHTML = `<div class="label">${k.label}</div><div class="value">${k.value}</div><div class="mini">${k.mini}</div>`;
+    kpiGrid.appendChild(d);
+  });
+
+  // Atualizado em
+  setText("updatedAt", period.updatedAt || "");
+
+  // Caixa (sempre mês corrente = visão mensal do período selecionado)
+  const cash = period.mensal;
+
+  // Despesas operacionais (Opex/Impostos/Juros)
+  const despesas = Array.isArray(cash.despesas) ? cash.despesas : [];
+  const byName = (name) => despesas.find(d => String((d.name ?? d.conta) ?? '').toLowerCase() === name.toLowerCase()) || null;
+
+  function rowFromDesp(name){
+    const r = byName(name);
+    if(!r) return {orcado:null, pago:null, aPagar:null, projMes:null};
+    const aPagar = parseBRNumber(r.extra) ?? 0;
+    const pago = Number(r.pago ?? 0);
+    const projMes = pago + aPagar;
+    const orcado = (r.orcado ?? null);
+    return {orcado, pago, aPagar, projMes};
+  }
+
+  const opex = rowFromDesp("Opex");
+  const impostos = rowFromDesp("Impostos");
+  const juros = rowFromDesp("Juros e Tarifas");
+
+  fillCashRow("opex", opex);
+  fillCashRow("impostos", impostos);
+  fillCashRow("juros", juros);
+
+  // CPV (Matéria-prima / Mão de obra)
+  const mp = cash.cpv?.materiaPrima || null;
+  const mo = cash.cpv?.maoDeObra || null;
+
+  const mpProj = mp ? (mp.projMes ?? ((mp.pago||0) + (mp.aPagar||0))) : null;
+  const moProj = mo ? (mo.projMes ?? ((mo.pago||0) + (mo.aPagar||0))) : null;
+
+  setText("cash_mp_pago", brl(mp?.pago ?? null));
+  setText("cash_mp_apagar", brl(mp?.aPagar ?? null));
+  setText("cash_mp_proj", brl(mpProj));
+
+  setText("cash_mo_pago", brl(mo?.pago ?? null));
+  setText("cash_mo_apagar", brl(mo?.aPagar ?? null));
+  setText("cash_mo_proj", brl(moProj));
+
+  // Total geral (Caixa operacional = 5 contas; Comissária NÃO entra)
+  const totalPago = ((opex.pago||0)+(impostos.pago||0)+(juros.pago||0)+(mp?.pago||0)+(mo?.pago||0));
+  const totalAPagar = ((opex.aPagar||0)+(impostos.aPagar||0)+(juros.aPagar||0)+(mp?.aPagar||0)+(mo?.aPagar||0));
+  const totalProj = totalPago + totalAPagar;
+
+  setText("cash_total_pago", brl(totalPago));
+  setText("cash_total_apagar", brl(totalAPagar));
+  setText("cash_total_proj", brl(totalProj));
+}
+
+function nextPeriod(){
+  const sel = document.getElementById('periodSelect');
+  const keys = Object.keys(DATA);
+  const idx = keys.indexOf(sel.value);
+  sel.value = keys[(idx + 1) % keys.length];
+  render();
+}
+
+function toggleAuto(){
+  autoOn = !autoOn;
+  const btn = document.getElementById('autoBtn');
+  if(btn) btn.textContent = `Auto: ${autoOn ? "ON" : "OFF"}`;
+  if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
+  if(autoOn){
+      }
+}
+
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen?.();
+  } else {
+    document.exitFullscreen?.();
+  }
+}
+
+document.getElementById('periodSelect').addEventListener('change', render);
+document.getElementById('viewSelect').addEventListener('change', render);
+document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+
+render();
+
+function calcularTotalGeralProjecao() {
+  const rows = [...document.querySelectorAll('table tbody tr')];
+  const contasValidas = ['Opex','Impostos','Juros e Tarifas','Matéria-prima','Mão de obra'];
+  let total = 0;
+  rows.forEach(r => {
+    const nome = r.querySelector('td')?.innerText?.trim();
+    if (contasValidas.includes(nome)) {
+      const val = r.querySelector('td:last-child')?.innerText || '0';
+      total += parseBRL(val);
+    }
+  });
+  return total;
+}
+
+</script>
+
+
+<script>
+(function(){
+  function parseBRL(s){
+    if(!s) return 0;
+    s = String(s).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',', '.');
+    var v = Number(s);
+    return Number.isFinite(v) ? v : 0;
+  }
+  function formatBRL(v){
+    if(v === null || v === undefined || Number.isNaN(v)) return "—";
+    return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+  }
+
+  function riskMeta(saldo, despesas){
+    var ratio = (despesas>0) ? (saldo/despesas) : 0;
+    if(saldo >= 0) return {label:'Baixo', color:'#00ff99', bg:'rgba(0,255,153,.10)', brd:'rgba(0,255,153,.35)', msg:'✅ Caixa positivo (ou zerado)'};
+    if(ratio >= -0.02) return {label:'Atenção', color:'#ffc600', bg:'rgba(255,198,0,.10)', brd:'rgba(255,198,0,.35)', msg:'⚠️ Caixa levemente negativo'};
+    if(ratio >= -0.05) return {label:'Médio', color:'#ff8a00', bg:'rgba(255,138,0,.10)', brd:'rgba(255,138,0,.35)', msg:'⚠️ Caixa negativo (atenção)'};
+    return {label:'Alto', color:'#ff3c50', bg:'rgba(255,60,80,.10)', brd:'rgba(255,60,80,.35)', msg:'⛔ Caixa negativo'};
+  }
+
+  function getPeriodMensal(){
+    try{
+      var periodKey = (document.getElementById('periodSelect')||{}).value;
+      var period = (typeof DATA !== 'undefined') ? DATA[periodKey] : null;
+      return (period && period.mensal) ? period.mensal : null;
+    }catch(e){ return null; }
+  }
+
+  function getDespesasPagoApagarFromMensal(mensal){
+    // Caixa operacional = Opex + Impostos + Juros e Tarifas + Matéria-prima + Mão de obra
+    // Comissária NÃO entra no cálculo do caixa.
+    try{
+      if(!mensal) return null;
+
+      // despesas operacionais
+      var despesas = Array.isArray(mensal.despesas) ? mensal.despesas : [];
+      function byName(n){
+        n = String(n||'').toLowerCase();
+        return despesas.find(d => String((d.name ?? d.conta) ?? '').toLowerCase() === n) || null;
+      }
+      function parseAPagar(extra){
+        var m = String(extra||'').match(/([\d\.]+,\d{2})/);
+        if(!m) return 0;
+        return Number(m[1].replace(/\./g,'').replace(',','.')) || 0;
+      }
+      function rowDesp(nome){
+        var r = byName(nome);
+        if(!r) return {pago:0, aPagar:0};
+        return {pago: Number(r.pago)||0, aPagar: parseAPagar(r.extra)};
+      }
+
+      var opex = rowDesp('Opex');
+      var imp  = rowDesp('Impostos');
+      var jur  = rowDesp('Juros e Tarifas');
+
+      // CPV
+      var mp = (mensal.cpv && mensal.cpv.materiaPrima) ? mensal.cpv.materiaPrima : null;
+      var mo = (mensal.cpv && mensal.cpv.maoDeObra) ? mensal.cpv.maoDeObra : null;
+
+      var total =
+        (opex.pago + opex.aPagar) +
+        (imp.pago  + imp.aPagar) +
+        (jur.pago  + jur.aPagar) +
+        ((Number(mp && mp.pago)||0) + (Number(mp && mp.aPagar)||0)) +
+        ((Number(mo && mo.pago)||0) + (Number(mo && mo.aPagar)||0));
+
+      return total;
+    }catch(e){}
+    return null;
+  }
+
+  function getDespesasPagoApagarFromTable(){
+    // soma de Pago + A pagar das 6 linhas (Opex, Impostos, Juros e Tarifas, Matéria-prima, Mão de obra, Total geral não entra; Comissária está no HTML solta)
+    // OBS: preferimos pegar diretamente pelos IDs quando existirem.
+    var ids = [
+      ['cash_opex_pago','cash_opex_apagar'],
+      ['cash_impostos_pago','cash_impostos_apagar'],
+      ['cash_juros_pago','cash_juros_apagar'],
+      ['cash_mp_pago','cash_mp_apagar'],
+      ['cash_mo_pago','cash_mo_apagar']
+    ];
+    var sum = 0;
+    ids.forEach(function(pair){
+      var a = document.getElementById(pair[0]);
+      var b = document.getElementById(pair[1]);
+      sum += parseBRL(a ? a.textContent : 0);
+      sum += parseBRL(b ? b.textContent : 0);
+    });
+    return sum;
+  }
+
+  function getFaturamentoRealizado(mensal){
+    try{
+      var v = mensal && mensal.totals && mensal.totals.realizado;
+      return Number(v)||0;
+    }catch(e){ return 0; }
+  }
+
+  function render(){
+    var mensal = getPeriodMensal();
+
+    var despesas = getDespesasPagoApagarFromMensal(mensal);
+    if(despesas === null) despesas = getDespesasPagoApagarFromTable();
+
+    var fat = getFaturamentoRealizado(mensal);
+    var saldo = fat - despesas;
+
+    var elDespesas = document.getElementById('simContasMes');
+    var elFat = document.getElementById('simFatTotal2');
+    var elSaldo = document.getElementById('simSaldoCaixa');
+
+    if(elDespesas) elDespesas.textContent = formatBRL(despesas);
+    if(elFat) elFat.textContent = formatBRL(fat);
+    if(elSaldo) elSaldo.textContent = formatBRL(saldo);
+
+    var r = riskMeta(saldo, despesas);
+
+    if(elSaldo) elSaldo.style.color = r.color;
+
+    var box = document.getElementById('cashStatusBox');
+    if(box){
+      box.style.borderColor = r.brd;
+      box.style.background = r.bg;
+    }
+
+    var st = document.getElementById('simStatusText');
+    if(st) st.textContent = r.msg;
+
+    var risk = document.getElementById('simRiscoCaixaTxt');
+    if(risk){
+      risk.textContent = r.label;
+      risk.style.color = r.color;
+    }
+  }
+
+  // Re-render quando muda o período/visão
+  var periodSel = document.getElementById('periodSelect');
+  var viewSel = document.getElementById('viewSelect');
+  if(periodSel) periodSel.addEventListener('change', function(){ setTimeout(render, 0); });
+  if(viewSel) viewSel.addEventListener('change', function(){ setTimeout(render, 0); });
+
+  // Também re-render depois que o painel popular os números do cashPanel (caso exista)
+  setTimeout(render, 0);
+})();
+
+
+function calcularTotalGeralProjecao() {
+  const rows = [...document.querySelectorAll('table tbody tr')];
+  const contasValidas = ['Opex','Impostos','Juros e Tarifas','Matéria-prima','Mão de obra'];
+  let total = 0;
+  rows.forEach(r => {
+    const nome = r.querySelector('td')?.innerText?.trim();
+    if (contasValidas.includes(nome)) {
+      const val = r.querySelector('td:last-child')?.innerText || '0';
+      total += parseBRL(val);
+    }
+  });
+  return total;
+}
+
+</script>
+
+<script>
+// === AJUSTE DEFINITIVO DE CAIXA OPERACIONAL (SEM COMISSÁRIA) ===
+function recalcularCaixaOperacional() {
+  const contasValidas = ['Opex','Impostos','Juros e Tarifas','Matéria-prima','Mão de obra'];
+  let pago = 0, aPagar = 0, proj = 0;
+
+  document.querySelectorAll('table tbody tr').forEach(tr => {
+    const nome = tr.children[0]?.innerText?.trim();
+    if (contasValidas.includes(nome)) {
+      pago   += parseBRL(tr.children[2].innerText);
+      aPagar += parseBRL(tr.children[3].innerText);
+      proj   += parseBRL(tr.children[4].innerText);
+    }
+  });
+
+  // Atualiza linha TOTAL GERAL
+  document.querySelectorAll('table tbody tr').forEach(tr => {
+    if (tr.children[0]?.innerText?.trim() === 'Total geral') {
+      tr.children[2].innerText = formatBRL(pago);
+      tr.children[3].innerText = formatBRL(aPagar);
+      tr.children[4].innerText = formatBRL(proj);
+    }
+  });
+
+  // Atualiza RESUMO DE CAIXA
+  const despesasCard = document.querySelector('[data-card="despesas-mes"]');
+  if (despesasCard) despesasCard.innerText = formatBRL(proj);
+
+  const faturamento = parseBRL(
+    document.querySelector('[data-card="faturamento-mes"]').innerText
+  );
+
+  const saldoCard = document.querySelector('[data-card="saldo-caixa"]');
+  if (saldoCard) saldoCard.innerText = formatBRL(faturamento - proj);
+}
+
+// roda após render
+setTimeout(recalcularCaixaOperacional, 50);
+</script>
+
+</body>
+</html>

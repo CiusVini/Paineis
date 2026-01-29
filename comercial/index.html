@@ -1,0 +1,2299 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Painel Comercial — Metas, Ranking, Semana</title>
+<style>
+:root{
+  --bg:#0b1220; --text:#e9edf7; --muted:rgba(233,237,247,.72);
+  --border:rgba(255,255,255,.12); --shadow:0 10px 30px rgba(0,0,0,.35);
+  --card:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 700px at 20% -10%, #1a2b55 0%, var(--bg) 55%), var(--bg); color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;}
+.container{max-width:1380px;margin:0 auto;padding:16px 14px 26px}
+
+.header{display:flex;gap:10px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px}
+.h1{font-size:30px;font-weight:900;letter-spacing:.2px}
+.sub{color:var(--muted);font-size:13px}
+
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.control{display:flex;flex-direction:column;gap:6px}
+.control label{font-size:11px;color:rgba(233,237,247,.75)}
+/* filtros: fundo branco, texto preto */
+.select{
+  background:#fff;
+  color:#111;
+  border:1px solid rgba(0,0,0,.25);
+  border-radius:12px;
+  padding:10px 12px;
+  outline:none;
+  font-weight:700;
+}
+.btn{
+  background:#fff;color:#111;border:1px solid rgba(0,0,0,.25);
+  border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer;
+}
+.btn:active{transform:translateY(1px)}
+.pill{font-size:12px;color:rgba(233,237,247,.85);border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:rgba(255,255,255,.04)}
+
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px 14px;box-shadow:var(--shadow)}
+.card .label{color:var(--muted);font-size:12px}
+.card .value{font-size:26px;font-weight:900;margin-top:4px}
+.card .mini{color:var(--muted);font-size:12px;margin-top:6px;display:flex;gap:10px;flex-wrap:wrap}
+
+.span-3{grid-column:span 3}
+.span-4{grid-column:span 4}
+.span-6{grid-column:span 6}
+.span-8{grid-column:span 8}
+.span-12{grid-column:span 12}
+
+.section{margin-top:12px}
+.section-title{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:8px 0 10px}
+.section-title h2{margin:0;font-size:16px}
+.section-title .hint{color:var(--muted);font-size:12px}
+
+.table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden}
+.table th,.table td{padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px}
+.table th{text-align:left;color:rgba(233,237,247,.86);font-weight:800;background:rgba(255,255,255,.04);position:sticky;top:0}
+.table td.right,.table th.right{text-align:right}
+.table tr:hover td{background:rgba(255,255,255,.03)}
+
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);font-size:12px;color:rgba(233,237,247,.92)}
+.badge.ok{border-color:rgba(53,208,127,.35);background:rgba(53,208,127,.10)}
+.badge.warn{border-color:rgba(255,215,0,.30);background:rgba(255,215,0,.10)}
+.badge.bad{border-color:rgba(255,107,107,.30);background:rgba(255,107,107,.10)}
+
+.progress{height:12px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.10)}
+.progress > div{height:100%;background:linear-gradient(90deg, rgba(255,79,79,.95), rgba(82,168,255,.95));width:0%}
+
+.note{color:var(--muted);font-size:12px;line-height:1.35}
+
+
+.badgecell{display:inline-flex;align-items:center;justify-content:center;min-width:70px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);font-weight:900}
+.badgecell.ok{border-color:rgba(53,208,127,.35);background:rgba(53,208,127,.12)}
+.badgecell.warn{border-color:rgba(255,215,0,.30);background:rgba(255,215,0,.12)}
+.badgecell.bad{border-color:rgba(255,107,107,.30);background:rgba(255,107,107,.12)}
+.cell-target-bad{background:rgba(255,107,107,.18)}
+.cell-target-ok{background:rgba(53,208,127,.12)}
+
+
+.togglebar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tbtn{cursor:pointer;user-select:none;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:rgba(233,237,247,.92);font-weight:900}
+.tbtn.active{background:rgba(82,168,255,.18);border-color:rgba(82,168,255,.35)}
+.trend{display:inline-flex;align-items:center;gap:8px;font-weight:900}
+.trend.down{color:rgba(255,107,107,.95)}
+.trend.up{color:rgba(53,208,127,.95)}
+.trend.flat{color:rgba(233,237,247,.75)}
+.row-alert{outline:2px solid rgba(255,107,107,.22);background:linear-gradient(0deg, rgba(255,107,107,.10), rgba(255,107,107,.02))}
+.badgefire{display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border-radius:999px;border:1px solid rgba(255,165,0,.25);background:rgba(255,165,0,.10);font-weight:900;margin-left:10px}
+
+
+.pager{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin-top:8px}
+.pager .pbtn{cursor:pointer;user-select:none;padding:8px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:rgba(233,237,247,.92);font-weight:900}
+.pager .pbtn:active{transform:translateY(1px)}
+.pager .pill{margin-left:6px}
+
+@media (max-width:1180px){.span-3,.span-4{grid-column:span 6} .span-8{grid-column:span 12}}
+@media (max-width:760px){.span-3,.span-4,.span-6{grid-column:span 12} .h1{font-size:22px}}
+
+/* --- Light theme overrides (fundo branco) --- */
+:root{
+  --bg:#f5f6fa;
+  --text:#111827;
+  --muted:rgba(17,24,39,.65);
+  --border:rgba(17,24,39,.12);
+  --shadow:0 10px 25px rgba(17,24,39,.10);
+  --card:linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.90));
+}
+body{
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+.card, .panel, .kpi, .box, .tableWrap, .table-wrap{
+  background: var(--card) !important;
+}
+
+
+/* --- Extra ajustes de cores para o tema claro --- */
+.pill{
+  color: rgba(17,24,39,.88) !important;
+  background: rgba(17,24,39,.04) !important;
+  border-color: rgba(17,24,39,.18) !important;
+}
+.badge{
+  color: rgba(17,24,39,.88) !important;
+  background: rgba(17,24,39,.04) !important;
+  border-color: rgba(17,24,39,.18) !important;
+}
+.badge.ok{
+  border-color: rgba(34,197,94,.35) !important;
+  background: rgba(34,197,94,.10) !important;
+}
+.badge.warn{
+  border-color: rgba(245,158,11,.35) !important;
+  background: rgba(245,158,11,.10) !important;
+}
+.badge.bad{
+  border-color: rgba(239,68,68,.30) !important;
+  background: rgba(239,68,68,.10) !important;
+}
+.badgecell{
+  color: rgba(17,24,39,.88) !important;
+  background: rgba(17,24,39,.04) !important;
+  border-color: rgba(17,24,39,.18) !important;
+}
+.select, select, input{
+  color: rgba(17,24,39,.88) !important;
+  background: rgba(255,255,255,.92) !important;
+  border-color: rgba(17,24,39,.18) !important;
+}
+.small, .sub, .hint, .muted{
+  color: rgba(17,24,39,.62) !important;
+}
+table th{
+  color: rgba(17,24,39,.70) !important;
+}
+table td{
+  color: rgba(17,24,39,.88) !important;
+}
+tr:hover td{
+  background: rgba(17,24,39,.03) !important;
+}
+
+
+.progress{
+  background: rgba(17,24,39,.06) !important;
+  border-color: rgba(17,24,39,.18) !important;
+}
+
+
+/* === Ajustes finais de contraste no tema escuro === */
+body.theme-dark .badgecell,
+body.theme-dark .badge,
+body.theme-dark .pill{
+  color: rgba(233,237,247,.96) !important;
+}
+
+body.theme-dark .badgecell.ok,
+body.theme-dark .badge.ok{ color: rgba(233,237,247,.98) !important; }
+body.theme-dark .badgecell.warn,
+body.theme-dark .badge.warn{ color: rgba(233,237,247,.98) !important; }
+body.theme-dark .badgecell.bad,
+body.theme-dark .badge.bad{ color: rgba(233,237,247,.98) !important; }
+
+/* % de meta / indicadores que às vezes herdam cor "apagada" */
+body.theme-dark .pct,
+body.theme-dark .percent,
+body.theme-dark .metaPct,
+body.theme-dark .statusPct,
+body.theme-dark .sub,
+body.theme-dark .muted,
+body.theme-dark .note,
+body.theme-dark .kpi-sub{
+  color: rgba(233,237,247,.78) !important;
+}
+body.theme-dark .badgecell .pct,
+body.theme-dark .badgecell .percent,
+body.theme-dark .badgecell .metaPct{
+  color: rgba(233,237,247,.96) !important;
+}
+
+
+/* === Tela 3 (clean): tabela compacta + barra de progresso === */
+.carouselSlide[data-idx="2"] .card{
+  /* aumenta o “respiro” do quadro na tela */
+  padding:18px 18px 22px;
+}
+.metaCleanWrap{
+  /* Mais “respiro” visual para leitura em TV/monitor */
+  padding:12px 6px 24px;
+}
+.metaCleanTable{ width:100%; min-width: 1050px; }
+.metaCleanTable th{ font-size:12px; letter-spacing:.3px; text-transform:uppercase; }
+.metaCleanTable td, .metaCleanTable th{ padding:14px 14px; }
+.metaCleanTable td:first-child{ font-weight:900; font-size:14px; }
+.metaCleanTable .totalRow td{ font-weight:900; }
+.metaCleanTable tr.totalRow{ background: rgba(255,255,255,.04); }
+body.theme-light .metaCleanTable tr.totalRow{ background: rgba(17,24,39,.05); }
+
+
+/* Semana cards (linha horizontal abaixo do quadro de metas) */
+.weekCardsRow{
+  display:flex;
+  gap:14px;
+  margin-top:16px;
+  width:100%;
+  flex-wrap:wrap; /* caso mês tenha 5+ semanas, quebra com elegância */
+}
+.weekCard{
+  flex:1;
+  min-width: 210px;
+  border-radius:16px;
+  padding:14px 16px;
+  border:1px solid rgba(255,255,255,.10);
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  box-shadow: 0 10px 24px rgba(0,0,0,.20);
+}
+body.theme-light .weekCard{
+  border-color: rgba(17,24,39,.12);
+  background: linear-gradient(180deg, rgba(17,24,39,.03), rgba(17,24,39,.01));
+  box-shadow: 0 10px 24px rgba(17,24,39,.08);
+}
+.weekCard .wkTitle{
+  font-weight:900;
+  letter-spacing:.3px;
+  font-size:12px;
+  color: rgba(233,237,247,.78);
+  text-transform:uppercase;
+}
+.weekCard .wkValue{
+  margin-top:8px;
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:.3px;
+}
+.weekCard .wkMini{
+  margin-top:6px;
+  color: rgba(233,237,247,.70);
+  font-size:12px;
+}
+.weekCard.active{
+  border-color: rgba(34,197,94,.55);
+  box-shadow: 0 0 0 3px rgba(34,197,94,.16), 0 10px 26px rgba(0,0,0,.28);
+}
+body.theme-light .weekCard.active{
+  border-color: rgba(22,163,74,.60);
+  box-shadow: 0 0 0 3px rgba(22,163,74,.14), 0 10px 26px rgba(17,24,39,.10);
+}
+
+.pctWrap{ display:flex; align-items:center; gap:10px; justify-content:flex-end; }
+.pctBar{ width:110px; height:8px; border-radius:999px; background: rgba(255,255,255,.16); overflow:hidden; }
+body.theme-light .pctBar{ background: rgba(17,24,39,.16); }
+.pctFill{ height:100%; border-radius:999px; background: rgba(34,197,94,.90); }
+body.theme-light .pctFill{ background: rgba(34,197,94,.75); }
+.pctVal{ font-weight:900; font-variant-numeric: tabular-nums; }
+
+/* Botões (auto, tela, salvar, tema) com texto legível no escuro */
+body.theme-dark .btn,
+body.theme-dark button.btn,
+body.theme-dark #themeBtn,
+body.theme-dark #autoBtn,
+body.theme-dark #fsBtn,
+body.theme-dark #salvarAlvos{
+  color: rgba(233,237,247,.96) !important;
+  background: rgba(255,255,255,.06) !important;
+  border-color: rgba(255,255,255,.14) !important;
+}
+body.theme-dark .btn:hover,
+body.theme-dark button.btn:hover,
+body.theme-dark #themeBtn:hover,
+body.theme-dark #autoBtn:hover,
+body.theme-dark #fsBtn:hover,
+body.theme-dark #salvarAlvos:hover{
+  background: rgba(255,255,255,.09) !important;
+}
+
+/* Inputs/selects do cabeçalho (garante leitura do valor selecionado) */
+body.theme-dark select,
+body.theme-dark input{
+  color: rgba(233,237,247,.96) !important;
+}
+body.theme-dark option{
+  color:#111827 !important; /* dropdown do sistema */
+}
+
+
+/* Badge META BATIDA (vendedor) */
+.meta-batida{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 10px;
+  border-radius:999px;
+  font-weight:800;
+  font-size:12px;
+  background:#16a34a;
+  color:#ffffff;
+  margin-left:10px;
+  border:1px solid rgba(0,0,0,.08);
+}
+body.theme-dark .meta-batida{
+  background:#22c55e;
+  color:#052e16;
+  border-color: rgba(255,255,255,.18);
+}
+
+
+/* ===== Carrossel (4 telas) ===== */
+.header{position:sticky;top:0;z-index:80;backdrop-filter:blur(10px);}
+.carouselViewport{position:relative;}
+.carouselSlide{display:none;}
+.carouselSlide.active{display:block;}
+.carouselNav{display:flex;align-items:center;gap:8px}
+.carouselNav .pbtn{width:38px;height:34px;border-radius:12px}
+.carouselDots{display:flex;gap:6px}
+.carouselDot{width:10px;height:10px;border-radius:999px;border:1px solid rgba(255,255,255,.35);opacity:.7;cursor:pointer}
+.carouselDot.active{opacity:1;transform:scale(1.1)}
+body.theme-light .carouselDot{border-color: rgba(0,0,0,.25)}
+
+
+/* Ajuste Carrossel 01: dar respiro do cabeçalho e centralizar melhor */
+.carouselSlide[data-idx="0"]{ 
+  padding-top: 22px; /* espaço abaixo do cabeçalho de filtros */
+}
+.carouselSlide[data-idx="0"] .section:first-child{
+  margin-top: 6px;
+}
+
+
+/* Tela 1 — Ritmo necessário + Alerta */
+.ritmoWrap{
+  margin-top:12px;
+}
+.ritmoCard{
+  padding:14px 16px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.10);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+}
+.ritmoTitle{
+  display:flex; align-items:center; gap:10px;
+  font-weight:700;
+  margin-bottom:10px;
+}
+.ritmoGrid{
+  display:grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap:10px;
+}
+
+/* Projeção (mês) - card separado */
+.projCard{ padding:16px 18px; }
+.projGrid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap:14px;
+}
+@media (max-width: 900px){
+  .projGrid{ grid-template-columns: 1fr; }
+}
+
+.ritmoKpi{
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.18);
+}
+.ritmoLbl{ font-size:12px; opacity:.85; }
+.ritmoVal{ font-size:20px; font-weight:800; margin-top:4px; }
+.ritmoAlert{
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800;
+}
+.ritmoAlert.ok{ color:#22c55e; }
+.ritmoAlert.bad{ color:#ef4444; }
+
+
+/* Ritmo (Tela 1): semáforo + projeção */
+.rtDot{ width:14px; height:14px; border-radius:999px; display:inline-block; margin-right:10px;
+  box-shadow:0 0 0 3px rgba(255,255,255,.05);
+  background:#ef4444;
+}
+.rtDot.ok{ background:#22c55e; }
+.rtDot.warn{ background:#f59e0b; }
+.rtDot.bad{ background:#ef4444; }
+.rtWrap{ display:flex; align-items:flex-start; gap:10px; }
+.rtText{ display:flex; flex-direction:column; gap:4px; }
+.rtTitle{ font-weight:900; font-size:16px; line-height:1.15; }
+.rtSub{ font-size:12px; opacity:.92; line-height:1.25; }
+.rtSub b{ font-weight:800; }
+
+
+/* FIX setas (modo escuro): fundo branco + seta preta */
+body:not(.theme-light) .pbtn,
+body:not(.theme-light) #slidePrev,
+body:not(.theme-light) #slideNext,
+body:not(.theme-light) #rankPrev,
+body:not(.theme-light) #rankNext{
+  background:#ffffff !important;
+  color:#000000 !important;
+  border:1px solid #e5e7eb !important;
+}
+body:not(.theme-light) .pbtn:hover,
+body:not(.theme-light) #slidePrev:hover,
+body:not(.theme-light) #slideNext:hover,
+body:not(.theme-light) #rankPrev:hover,
+body:not(.theme-light) #rankNext:hover{
+  background:#f3f4f6 !important;
+}
+
+
+/* hide source note */
+#sourceNote,.source-note,.footer-source,.footer-note{display:none!important;}
+
+/* === Quadro Meta x Realizado x Falta (Tela 3) === */
+.metaBoard{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap:14px;
+}
+@media (max-width: 980px){
+  .metaBoard{ grid-template-columns: 1fr; }
+}
+.metaCol{
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.04);
+}
+body.theme-light .metaCol{
+  border-color: rgba(17,24,39,.14);
+  background: rgba(17,24,39,.03);
+}
+.metaColTitle{
+  font-weight:900;
+  letter-spacing:.4px;
+  padding:12px 14px;
+  font-size:18px;
+  text-transform:uppercase;
+}
+.metaCol-meta .metaColTitle{ background:#0b4f71; color:#ffffff; }
+.metaCol-real .metaColTitle{ background:#0aa84f; color:#ffffff; }
+.metaCol-gap  .metaColTitle{ background:#e11d48; color:#ffffff; text-transform:none; }
+
+body.theme-dark .metaCol-meta .metaColTitle{ background:#0b4f71; }
+body.theme-dark .metaCol-real .metaColTitle{ background:#16a34a; color:#052e16; }
+body.theme-dark .metaCol-gap  .metaColTitle{ background:#dc2626; color:#ffffff; }
+
+.metaColBody{ padding:12px 14px 14px; }
+
+.metaProd{
+  padding:10px 0 12px;
+  border-bottom:1px solid rgba(255,255,255,.10);
+}
+body.theme-light .metaProd{
+  border-bottom-color: rgba(17,24,39,.12);
+}
+.metaProd:last-child{ border-bottom:none; padding-bottom:6px; }
+
+.metaProdName{
+  font-size:22px;
+  font-weight:900;
+  margin-bottom:6px;
+}
+.metaSubHead{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+  font-weight:900;
+  font-size:12px;
+  opacity:.85;
+  margin:2px 0 6px;
+  text-transform:uppercase;
+}
+.metaSubHead.three{ grid-template-columns: 1fr 1fr .6fr; }
+
+.metaVals{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+  align-items:baseline;
+}
+.metaVals.three{ grid-template-columns: 1fr 1fr .6fr; }
+.metaVal{
+  font-size:22px;
+  font-weight:900;
+  line-height:1.05;
+}
+.metaPct{
+  font-size:22px;
+  font-weight:900;
+  text-align:right;
+}
+.metaMuted{
+  font-size:12px;
+  opacity:.75;
+  margin-top:2px;
+}
+
+</style>
+<style id="force-white-bg">body{background:#ffffff !important;}</style>
+
+
+<style id="themeToggleStyles">
+/* Toggle de tema (não altera layout) */
+#themeBtn{
+  display:flex; align-items:center; justify-content:center;
+  gap:6px;
+  padding:10px 12px;
+  min-width: 110px;
+  border-radius: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Tema claro (padrão) – nada agressivo, só garante legibilidade */
+body.theme-light{
+  background:#ffffff !important;
+}
+
+/* Tema escuro – reforça contraste (alguns textos do tema claro precisam de override) */
+body.theme-dark{
+  background: radial-gradient(1200px 700px at 15% -10%, rgba(86,204,242,.12), transparent 60%),
+              radial-gradient(900px 500px at 90% 0%, rgba(245,158,11,.10), transparent 55%),
+              #0b1220 !important;
+  color:#e9edf7 !important;
+}
+body.theme-dark .container,
+body.theme-dark .header,
+body.theme-dark .h1,
+body.theme-dark .section-title,
+body.theme-dark .section-subtitle,
+body.theme-dark .sub,
+body.theme-dark label,
+body.theme-dark th,
+body.theme-dark td{
+  color:#e9edf7 !important;
+}
+body.theme-dark .sub{
+  color: rgba(233,237,247,.72) !important;
+}
+
+body.theme-dark .card,
+body.theme-dark .section,
+body.theme-dark .panel,
+body.theme-dark .box,
+body.theme-dark .kpi-card{
+  background: rgba(255,255,255,.03) !important;
+  border-color: rgba(255,255,255,.12) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,.30) !important;
+}
+
+body.theme-dark .select,
+body.theme-dark select,
+body.theme-dark input{
+  background: rgba(255,255,255,.06) !important;
+  color:#e9edf7 !important;
+  border-color: rgba(255,255,255,.16) !important;
+}
+
+body.theme-dark .btn,
+body.theme-dark button{
+  color:#e9edf7 !important;
+  border-color: rgba(255,255,255,.16) !important;
+}
+
+/* Mantém cores de status (verde/vermelho) sem “lavar” */
+body.theme-dark .pos,
+body.theme-dark .positive,
+body.theme-dark .up{ color: #34d399 !important; }
+body.theme-dark .neg,
+body.theme-dark .negative,
+body.theme-dark .down{ color: #fb7185 !important; }
+
+/* ===== Fixes finais de contraste (Tema Escuro) ===== */
+body.theme-dark .muted,
+body.theme-dark .hint,
+body.theme-dark .small,
+body.theme-dark .meta,
+body.theme-dark .note,
+body.theme-dark .sub,
+body.theme-dark .kpi-sub,
+body.theme-dark .kpi-label,
+body.theme-dark .card-subtitle{
+  color: rgba(233,237,247,.78) !important;
+  opacity: 1 !important;
+}
+
+/* Títulos/valores dentro de cards e rankings */
+body.theme-dark .card *,
+body.theme-dark .kpi *,
+body.theme-dark .rank-card *,
+body.theme-dark .tile *,
+body.theme-dark .summary-card *{
+  color: inherit;
+}
+
+/* Inputs e selects (texto + placeholder) */
+body.theme-dark input,
+body.theme-dark select,
+body.theme-dark textarea{
+  color:#e9edf7 !important;
+  background: rgba(255,255,255,.06) !important;
+  border-color: rgba(255,255,255,.18) !important;
+}
+body.theme-dark input::placeholder,
+body.theme-dark textarea::placeholder{
+  color: rgba(233,237,247,.60) !important;
+}
+
+/* Pills/badges sempre legíveis */
+body.theme-dark .pill,
+body.theme-dark .badge{
+  color:#e9edf7 !important;
+  border-color: rgba(255,255,255,.18) !important;
+}
+
+/* Cabeçalho (labels dos filtros) */
+body.theme-dark .control label{
+  color: rgba(233,237,247,.85) !important;
+}
+
+</style>
+
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <div class="h1">Painel Comercial</div>
+      <div class="sub">Metas • Ranking (faturamento) • Preço médio por produto • Peso vendido</div>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label>Equipe</label>
+        <select id="teamSel" class="select">
+          <option value="Todos">Todos</option>
+          <option value="Equipe Interna">Equipe Interna</option>
+          <option value="Representantes">Representantes</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label>Tema</label>
+        <button id="themeBtn" class="btn" type="button" onclick="toggleTheme()" title="Alternar tema">🌙 Tema</button>
+      </div>
+
+      <div class="control">
+        <label>Ano</label>
+        <select id="yearSel" class="select"></select>
+      </div>
+      <div class="control">
+        <label>Mês</label>
+        <select id="monthSel" class="select"></select>
+      </div>
+      <div class="control">
+        <label>Semana</label>
+        <select id="weekSel" class="select"></select>
+      </div>
+      <div class="control">
+        <label>Auto</label>
+        <button id="autoBtn" class="btn" title="Alterna auto-rotação">ON</button>
+      </div>
+      <div class="control" style="min-width:auto">
+        <label>Tela</label>
+        <div class="carouselNav">
+          <button class="pbtn" id="slidePrev" title="Tela anterior">◀</button>
+          <button class="pbtn" id="slideNext" title="Próxima tela">▶</button>
+          <span class="pill" id="slideInfo">1/3</span>
+          <div class="carouselDots" aria-label="Páginas">
+            <div class="carouselDot" data-slide="0"></div>
+            <div class="carouselDot" data-slide="1"></div>
+            <div class="carouselDot" data-slide="2"></div>
+</div>
+        </div>
+      </div>
+
+      <div class="control">
+        <label>Tela</label>
+        <button id="fsBtn" class="btn" title="Tela cheia">⛶</button>
+      </div>
+    </div>
+  </div>
+
+  
+<div class="carouselViewport" id="carouselViewport">
+  <div class="carouselSlide active" data-idx="0"><div class="grid" id="kpis"></div>
+
+  
+
+
+  <div class="section">
+    <div class="section-title">
+      <h2>Progresso da meta (mês)</h2>
+      <div class="hint">Realizado mensal / Meta mensal do time</div>
+    </div>
+    <div class="card span-12">
+      <div class="progress"><div id="progBar"></div></div>
+      <div class="mini" id="progText" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  
+<div class="ritmoWrap" id="ritmoWrap" style="display:none">
+  <div class="card span-12 ritmoCard">
+    <div class="ritmoTitle">📈 Ritmo necessário para bater a meta</div>
+    <div class="ritmoGrid">
+      <div class="ritmoKpi">
+        <div class="ritmoLbl">Dias restantes</div>
+        <div class="ritmoVal" id="rtDias">—</div>
+      </div>
+      <div class="ritmoKpi">
+        <div class="ritmoLbl">Faturar por dia</div>
+        <div class="ritmoVal" id="rtFatDia">—</div>
+      </div>
+      <div class="ritmoKpi">
+        <div class="ritmoLbl">Kg por dia</div>
+        <div class="ritmoVal" id="rtKgDia">—</div>
+      </div>
+      <div class="ritmoKpi ritmoAlert" id="rtAlert">—</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid" style="margin-top:14px;">
+  <div class="card span-12 projCard" id="projWrap">
+        <div class="ritmoTitle">🔮 Projeção do mês (no ritmo atual)</div>
+        <div class="projGrid">
+          <div class="ritmoKpi">
+            <div class="ritmoLbl">Projeção (R$)</div>
+            <div class="ritmoVal" id="rtProj">—</div>
+          </div>
+          <div class="ritmoKpi">
+            <div class="ritmoLbl">% da meta</div>
+            <div class="ritmoVal" id="rtProjPct">—</div>
+          </div>
+        </div>
+      </div>
+</div>
+
+</div>
+
+
+<div class="carouselSlide" data-idx="2">
+  <div class="section">
+    <div class="section-title">
+      <h2>Meta mensal por produto</h2>
+      <div class="hint">Meta x Realizado x Falta (mês selecionado)</div>
+    </div>
+
+    <div class="card span-12">
+      <div class="metaCleanWrap">
+        <div style="overflow:auto; width:100%">
+          <table class="table metaCleanTable">
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th class="right">Meta (R$)</th>
+                <th class="right">Realizado (R$)</th>
+                <th class="right">% Atingido</th>
+                <th class="right">Falta (R$)</th>
+                <th class="right">Meta (Kg)</th>
+                <th class="right">Real (Kg)</th>
+                <th class="right">Falta (Kg)</th>
+              </tr>
+            </thead>
+            <tbody id="metaProdRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      
+
+      <div class="weekCardsRow" id="weekCardsRow"></div>
+<div class="note" style="margin-top:16px; margin-bottom:4px">
+        *Metas mensais informadas manualmente. Realizado considera o mês selecionado (ignora filtro de semana).
+      </div>
+    </div>
+  </div>
+</div>
+<div class="carouselSlide" data-idx="3">><div class="section" id="secSellerResumo">
+    <div class="section-title">
+      <h2>Resumo por Vendedor (Meta • Preço médio • Peso vendido)</h2>
+      <div class="hint">Semáforo de % atingido + destaque de preço médio abaixo do alvo (mês selecionado)</div>
+    </div>
+
+    <div class="grid">
+      <div class="card span-12">
+        <div class="label">Preço alvo (R$/kg) — referência para o time (salva neste dispositivo)</div>
+        <div class="mini" style="margin-top:10px; gap:14px; align-items:flex-end; flex-wrap:wrap">
+          <div class="control" style="min-width:210px">
+            <label style="color:rgba(233,237,247,.75);font-size:11px">Cobre</label>
+            <input id="alvoCobre" class="select" type="number" step="0.01" placeholder="ex: 95.50" />
+          </div>
+          <div class="control" style="min-width:210px">
+            <label style="color:rgba(233,237,247,.75);font-size:11px">Barra</label>
+            <input id="alvoBarra" class="select" type="number" step="0.01" placeholder="ex: 30.00" />
+          </div>
+          <div class="control" style="min-width:210px">
+            <label style="color:rgba(233,237,247,.75);font-size:11px">Alumínio</label>
+            <input id="alvoAluminio" class="select" type="number" step="0.01" placeholder="ex: 33.50" />
+          </div>
+          <button id="salvarAlvos" class="btn" style="height:44px">Salvar</button>
+          <span class="pill">Célula vermelha = abaixo do alvo</span>
+        </div>
+      </div>
+
+      <div class="card span-12">
+        <div style="overflow:auto; max-height:520px; border-radius:14px; width:100%">
+          <table class="table" style="min-width:1100px">
+            <thead>
+              <tr>
+                <th rowspan="2">Vendedor</th>
+                <th rowspan="2" class="right">Meta</th>
+                <th rowspan="2" class="right">Realizado</th>
+                <th rowspan="2" class="right">A Cumprir</th>
+                <th rowspan="2" class="right">% Atingido</th>
+                <th colspan="3" style="text-align:center">Preço Médio (R$/kg)</th>
+                <th colspan="3" style="text-align:center">Peso Vendido (Kg)</th>
+              </tr>
+              <tr>
+                <th class="right">Cobre</th>
+                <th class="right">Barra</th>
+                <th class="right">Alumínio</th>
+                <th class="right">Cobre</th>
+                <th class="right">Barra</th>
+                <th class="right">Alumínio</th>
+              </tr>
+            </thead>
+            <tbody id="sellerMixRows"></tbody>
+          </table>
+        </div>
+
+        <div class="note" style="margin-top:10px">
+          Preço médio = Faturamento do produto ÷ Kg do produto (por vendedor). Peso vendido = soma do Kg por produto (por vendedor).
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="section">
+    <div class="card span-12">
+      <div class="note" id="foot"></div>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+<script>
+const DATA = {"config":{"filters":{"years":[2026],"monthsByYear":{"2026":[1]},"weeksByYearMonth":{"2026-01":[2,3,4,5]},"default":{"year":2026,"month":1,"week":5,"team":"Todos"}},"metaMensal":{"Vieira":1770833.33,"Débora":479166.67,"Ricardo":479166.67,"Nazareno":479166.67,"Osvaldo":479166.67,"Representantes":479166.67}},"tx":[{"data":"2026-01-05","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Aluminio","valor":2055.0,"kg":59.5,"nota":"6748"},{"data":"2026-01-05","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1659.43,"kg":54.94,"nota":"6749"},{"data":"2026-01-05","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":2990.0,"kg":95.0,"nota":"6750"},{"data":"2026-01-05","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1964.44,"kg":63.65,"nota":"6751"},{"data":"2026-01-05","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":1106.8,"kg":12.4,"nota":"6752"},{"data":"2026-01-05","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Aluminio","valor":38000.0,"kg":1194.0,"nota":"6754"},{"data":"2026-01-05","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":5864.0,"kg":190.0,"nota":"6755"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":1956.5,"kg":61.75,"nota":"6756"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Barras","valor":885.0,"kg":28.5,"nota":"6758"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Cobre","valor":892.8,"kg":8.48,"nota":"6758"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":578.0,"kg":5.9,"nota":"6757"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":7330.0,"kg":237.5,"nota":"6759"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1466.0,"kg":47.5,"nota":"6760"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":3948.0,"kg":130.56,"nota":"6761"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":20040.0,"kg":266.4,"nota":"6762"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":5600.0,"kg":56.55,"nota":"6762"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":5344.0,"kg":174.08,"nota":"6762"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":3472.0,"kg":35.52,"nota":"6763"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":15546.0,"kg":161.21,"nota":"6767"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":9800.0,"kg":99.5,"nota":"6768"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":2052.4,"kg":66.5,"nota":"6769"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Cobre","valor":8590.0,"kg":89.5,"nota":"6764"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":2120.0,"kg":22.2,"nota":"6765"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":1350.0,"kg":14.1,"nota":"6765"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":458.0,"kg":7.2,"nota":"6765"},{"data":"2026-01-06","ano":2026,"mes":1,"semana":2,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":2032.0,"kg":27.5,"nota":"6766"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":4788.0,"kg":49.7,"nota":"6770"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":2989.0,"kg":31.08,"nota":"6771"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":2135.0,"kg":22.2,"nota":"6771"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":16200.0,"kg":544.0,"nota":"6773"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":13086.0,"kg":133.2,"nota":"6774"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":6784.0,"kg":71.04,"nota":"6775"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":3340.0,"kg":108.8,"nota":"6776"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":4163.44,"kg":134.9,"nota":"6777"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Barras","valor":14008.2,"kg":402.56,"nota":"6772"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":5232.5,"kg":166.25,"nota":"6778"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":1999.5,"kg":20.5,"nota":"6779"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":599.85,"kg":6.15,"nota":"6779"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Aluminio","valor":6705.0,"kg":206.72,"nota":"6780"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Aluminio","valor":2235.0,"kg":68.91,"nota":"6780"},{"data":"2026-01-07","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":4275.7,"kg":135.85,"nota":"6781"},{"data":"2026-01-08","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":6800.0,"kg":64.5,"nota":"6782"},{"data":"2026-01-08","ano":2026,"mes":1,"semana":2,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":8480.0,"kg":88.8,"nota":"6783"},{"data":"2026-01-08","ano":2026,"mes":1,"semana":2,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":2984.0,"kg":93.3,"nota":"6784"},{"data":"2026-01-08","ano":2026,"mes":1,"semana":2,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":20930.0,"kg":665.0,"nota":"6784"},{"data":"2026-01-08","ano":2026,"mes":1,"semana":2,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":2004.0,"kg":65.28,"nota":"6785"},{"data":"2026-01-08","ano":2026,"mes":1,"semana":2,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":933.0,"kg":28.5,"nota":"6786"},{"data":"2026-01-08","ano":2026,"mes":1,"semana":2,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":5085.0,"kg":53.25,"nota":"6787"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":2107.0,"kg":66.5,"nota":"6789"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":63080.0,"kg":643.46,"nota":"6790"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":6020.0,"kg":190.0,"nota":"6791"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":6020.0,"kg":190.0,"nota":"6792"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":6355.0,"kg":65.75,"nota":"6793"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":7835.0,"kg":80.43,"nota":"6793"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":97890.0,"kg":1079.19,"nota":"6794"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":193000.0,"kg":2000.0,"nota":"6795"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":12720.0,"kg":133.2,"nota":"6797"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":8540.0,"kg":88.8,"nota":"6798"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":1832.0,"kg":18.44,"nota":"6799"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":14805.0,"kg":155.0,"nota":"6799"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":12720.0,"kg":133.2,"nota":"6799"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":7832.0,"kg":82.0,"nota":"6799"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":2732.0,"kg":28.8,"nota":"6799"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":21200.0,"kg":222.0,"nota":"6800"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Aluminio","valor":77.0,"kg":2.81,"nota":"6801"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":5740.0,"kg":58.1,"nota":"6802"},{"data":"2026-01-09","ano":2026,"mes":1,"semana":2,"dia_semana":"segunda-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Aluminio","valor":90.0,"kg":3.22,"nota":"6803"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":18366.0,"kg":186.0,"nota":"6804"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1814.4,"kg":60.93,"nota":"6805"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":777.6,"kg":26.11,"nota":"6805"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":881.0,"kg":9.2,"nota":"6806"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":2732.0,"kg":28.8,"nota":"6806"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":6018.0,"kg":58.8,"nota":"6806"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":21200.0,"kg":222.0,"nota":"6806"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":15664.0,"kg":164.0,"nota":"6806"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":9687.6,"kg":307.8,"nota":"6807"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":1244.0,"kg":38.0,"nota":"6808"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":499.8,"kg":5.26,"nota":"6810"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":6020.0,"kg":190.0,"nota":"6812"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":511.7,"kg":16.15,"nota":"6813"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":20870.0,"kg":222.0,"nota":"6809"},{"data":"2026-01-12","ano":2026,"mes":1,"semana":3,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":2227.4,"kg":70.3,"nota":"6811"},{"data":"2026-01-13","ano":2026,"mes":1,"semana":3,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":570.0,"kg":18.66,"nota":"6814"},{"data":"2026-01-13","ano":2026,"mes":1,"semana":3,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":946.0,"kg":29.92,"nota":"6816"},{"data":"2026-01-13","ano":2026,"mes":1,"semana":3,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":4199.0,"kg":44.4,"nota":"6817"},{"data":"2026-01-13","ano":2026,"mes":1,"semana":3,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":15050.0,"kg":475.0,"nota":"6818"},{"data":"2026-01-13","ano":2026,"mes":1,"semana":3,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Barras","valor":1746.0,"kg":57.0,"nota":"6815"},{"data":"2026-01-13","ano":2026,"mes":1,"semana":3,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":5071.5,"kg":53.85,"nota":"6819"},{"data":"2026-01-13","ano":2026,"mes":1,"semana":3,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":473.5,"kg":4.35,"nota":"6820"},{"data":"2026-01-13","ano":2026,"mes":1,"semana":3,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":6674.0,"kg":71.0,"nota":"6821"},{"data":"2026-01-13","ano":2026,"mes":1,"semana":3,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":494.4,"kg":5.26,"nota":"6821"},{"data":"2026-01-13","ano":2026,"mes":1,"semana":3,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":29100.0,"kg":950.0,"nota":"6822"},{"data":"2026-01-13","ano":2026,"mes":1,"semana":3,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Cobre","valor":4748.0,"kg":42.31,"nota":"6823"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":453.0,"kg":4.08,"nota":"6824"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":655.5,"kg":6.45,"nota":"6824"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":971.0,"kg":9.8,"nota":"6824"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":971.0,"kg":9.8,"nota":"6824"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":2099.5,"kg":22.2,"nota":"6825"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":799.6,"kg":8.4,"nota":"6825"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":11640.0,"kg":380.0,"nota":"6826"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":2990.0,"kg":95.0,"nota":"6827"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":787.5,"kg":23.75,"nota":"6827"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1419.5,"kg":46.24,"nota":"6828"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":14956.6,"kg":503.5,"nota":"6829"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":14110.0,"kg":475.0,"nota":"6830"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":21400.0,"kg":222.0,"nota":"6831"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":21400.0,"kg":222.0,"nota":"6831"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":15875.0,"kg":160.87,"nota":"6832"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":11730.0,"kg":118.81,"nota":"6832"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":14680.0,"kg":155.8,"nota":"6832"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":18594.0,"kg":193.0,"nota":"6832"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":15875.0,"kg":160.87,"nota":"6832"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Cobre","valor":31540.0,"kg":321.73,"nota":"6833"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Cobre","valor":34850.0,"kg":359.0,"nota":"6833"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":34350.0,"kg":359.0,"nota":"6834"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":19649.0,"kg":200.0,"nota":"6835"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":5068.0,"kg":47.52,"nota":"6836"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":7720.0,"kg":71.95,"nota":"6836"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":8745.0,"kg":80.61,"nota":"6836"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1639.0,"kg":52.25,"nota":"6838"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":2283.0,"kg":23.76,"nota":"6837"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":6355.0,"kg":65.75,"nota":"6839"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":8662.5,"kg":89.75,"nota":"6839"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":8662.5,"kg":89.75,"nota":"6839"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":6355.0,"kg":65.75,"nota":"6839"},{"data":"2026-01-14","ano":2026,"mes":1,"semana":3,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":6320.0,"kg":217.6,"nota":"6840"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":5426.2,"kg":57.72,"nota":"6841"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":7977.0,"kg":83.8,"nota":"6842"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":32210.0,"kg":359.73,"nota":"6843"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":9240.0,"kg":103.22,"nota":"6843"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":2366.7,"kg":25.13,"nota":"6844"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":1709.4,"kg":55.98,"nota":"6845"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Barras","valor":1455.0,"kg":47.5,"nota":"6846"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":16932.0,"kg":570.0,"nota":"6847"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":4233.0,"kg":142.5,"nota":"6847"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Barras","valor":2345.6,"kg":76.0,"nota":"6848"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Cobre","valor":4218.0,"kg":44.4,"nota":"6849"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Cobre","valor":1178.0,"kg":12.4,"nota":"6849"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":8262.1,"kg":88.06,"nota":"6850"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":4240.0,"kg":44.4,"nota":"6851"},{"data":"2026-01-15","ano":2026,"mes":1,"semana":3,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":16696.0,"kg":177.6,"nota":"6852"},{"data":"2026-01-16","ano":2026,"mes":1,"semana":3,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Aluminio","valor":815.0,"kg":21.54,"nota":"6853"},{"data":"2026-01-16","ano":2026,"mes":1,"semana":3,"dia_semana":"sexta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":62490.0,"kg":630.0,"nota":"6854"},{"data":"2026-01-16","ano":2026,"mes":1,"semana":3,"dia_semana":"sexta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":62302.53,"kg":628.11,"nota":"6854"},{"data":"2026-01-16","ano":2026,"mes":1,"semana":3,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":11862.0,"kg":123.0,"nota":"6855"},{"data":"2026-01-16","ano":2026,"mes":1,"semana":3,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Cobre","valor":3088.0,"kg":32.17,"nota":"6856"},{"data":"2026-01-16","ano":2026,"mes":1,"semana":3,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":12597.0,"kg":133.2,"nota":"6857"},{"data":"2026-01-16","ano":2026,"mes":1,"semana":3,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":11728.0,"kg":380.0,"nota":"6858"},{"data":"2026-01-16","ano":2026,"mes":1,"semana":3,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":976.8,"kg":31.35,"nota":"6859"},{"data":"2026-01-16","ano":2026,"mes":1,"semana":3,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":10972.5,"kg":115.5,"nota":"6860"},{"data":"2026-01-16","ano":2026,"mes":1,"semana":3,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":1450.4,"kg":46.55,"nota":"6861"},{"data":"2026-01-16","ano":2026,"mes":1,"semana":3,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":1096.9,"kg":11.26,"nota":"6862"},{"data":"2026-01-16","ano":2026,"mes":1,"semana":3,"dia_semana":"sexta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":45696.0,"kg":450.42,"nota":"6863"},{"data":"2026-01-16","ano":2026,"mes":1,"semana":3,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":79500.0,"kg":845.71,"nota":"6864"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":2822.0,"kg":95.0,"nota":"6865"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":21350.0,"kg":222.0,"nota":"6866"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":2822.0,"kg":95.0,"nota":"6867"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":14110.0,"kg":475.0,"nota":"6868"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":4274.0,"kg":44.4,"nota":"6870"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":4274.0,"kg":44.4,"nota":"6870"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":2646.0,"kg":85.5,"nota":"6871"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":4033.4,"kg":127.3,"nota":"6872"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":41890.0,"kg":444.0,"nota":"6873"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":5929.52,"kg":63.08,"nota":"6874"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Cobre","valor":2061.5,"kg":21.7,"nota":"6877"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Cobre","valor":1075.6,"kg":11.26,"nota":"6878"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":632.1,"kg":19.95,"nota":"6879"},{"data":"2026-01-19","ano":2026,"mes":1,"semana":4,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":872.9,"kg":27.55,"nota":"6879"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":7712.5,"kg":80.43,"nota":"6880"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":14832.0,"kg":157.8,"nota":"6881"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":5458.7,"kg":57.72,"nota":"6882"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Barras","valor":1555.0,"kg":47.5,"nota":"6883"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":4274.0,"kg":44.4,"nota":"6885"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":3954.0,"kg":41.0,"nota":"6885"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Cobre","valor":294.5,"kg":3.1,"nota":"6886"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Cobre","valor":1520.0,"kg":14.14,"nota":"6887"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1505.0,"kg":47.5,"nota":"6884"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":325.6,"kg":10.45,"nota":"6888"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":1357.8,"kg":14.28,"nota":"6889"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":1851.0,"kg":19.3,"nota":"6889"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":37191.0,"kg":394.9,"nota":"6891"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":5010.0,"kg":163.2,"nota":"6892"},{"data":"2026-01-20","ano":2026,"mes":1,"semana":4,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":23700.0,"kg":810.0,"nota":"6893"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Cobre","valor":642.8,"kg":6.2,"nota":"6894"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Barras","valor":3110.0,"kg":95.0,"nota":"6895"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":4207.5,"kg":44.75,"nota":"6899"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":8355.0,"kg":270.0,"nota":"6900"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":33840.0,"kg":364.91,"nota":"6901"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":1749.6,"kg":17.76,"nota":"6902"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":2649.88,"kg":27.53,"nota":"6896"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":7525.0,"kg":237.5,"nota":"6903"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1505.0,"kg":47.5,"nota":"6904"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Aluminio","valor":2040.0,"kg":57.51,"nota":"6905"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":9000.0,"kg":285.0,"nota":"6907"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":1605.0,"kg":15.48,"nota":"6908"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1495.0,"kg":47.5,"nota":"6897"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Aluminio","valor":2870.0,"kg":70.35,"nota":"6906"},{"data":"2026-01-21","ano":2026,"mes":1,"semana":4,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Aluminio","valor":11530.0,"kg":361.9,"nota":"6906"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":7674.75,"kg":80.78,"nota":"6915"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":40010.0,"kg":415.0,"nota":"6916"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":22260.0,"kg":230.4,"nota":"6916"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":14840.0,"kg":153.6,"nota":"6916"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":1800.0,"kg":19.2,"nota":"6917"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":15235.0,"kg":155.53,"nota":"6918"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":43902.2,"kg":461.72,"nota":"6919"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Cobre","valor":9375.0,"kg":105.78,"nota":"6920"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Cobre","valor":8304.0,"kg":93.0,"nota":"6920"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":5498.5,"kg":56.9,"nota":"6921"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":29320.0,"kg":950.0,"nota":"6923"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":4270.0,"kg":44.4,"nota":"6924"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Barras","valor":590.0,"kg":19.0,"nota":"6925"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":11202.78,"kg":344.9,"nota":"6926"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":31550.0,"kg":321.73,"nota":"6927"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":24500.0,"kg":237.61,"nota":"6927"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":11190.0,"kg":117.94,"nota":"6927"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":4364.5,"kg":137.75,"nota":"6928"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":6020.0,"kg":190.0,"nota":"6929"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":3933.0,"kg":38.7,"nota":"6922"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":20523.75,"kg":210.5,"nota":"6930"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":14110.0,"kg":475.0,"nota":"6931"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":2735.5,"kg":93.3,"nota":"6931"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":2709.0,"kg":85.5,"nota":"6932"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":10803.8,"kg":117.32,"nota":"6933"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":6762.0,"kg":71.8,"nota":"6934"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":6762.0,"kg":71.8,"nota":"6934"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":6762.0,"kg":71.8,"nota":"6934"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":8280.0,"kg":84.48,"nota":"6935"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":1023.0,"kg":9.82,"nota":"6911"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":1023.0,"kg":9.82,"nota":"6911"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":1023.0,"kg":9.82,"nota":"6911"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":1023.0,"kg":9.82,"nota":"6911"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":1900.0,"kg":19.2,"nota":"6911"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":1900.0,"kg":19.2,"nota":"6911"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":4434.3,"kg":46.67,"nota":"6912"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":1626.3,"kg":17.1,"nota":"6912"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Barras","valor":23120.0,"kg":760.0,"nota":"6913"},{"data":"2026-01-22","ano":2026,"mes":1,"semana":4,"dia_semana":"quinta-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Aluminio","valor":382.5,"kg":10.77,"nota":"6914"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":1380.0,"kg":14.14,"nota":"6937"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":1000.25,"kg":10.38,"nota":"6937"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":1000.25,"kg":10.38,"nota":"6937"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":1380.0,"kg":14.14,"nota":"6937"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":1380.0,"kg":14.14,"nota":"6937"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":1380.0,"kg":14.14,"nota":"6937"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":1380.0,"kg":14.14,"nota":"6937"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":592.8,"kg":6.2,"nota":"6938"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":15026.4,"kg":159.84,"nota":"6939"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":4752.3,"kg":49.98,"nota":"6941"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":3597.3,"kg":37.59,"nota":"6941"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Venda Direta","produto":"Cobre","valor":2208.0,"kg":22.53,"nota":"6942"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":2472.0,"kg":26.3,"nota":"6943"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":8858.0,"kg":280.16,"nota":"6945"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":6320.0,"kg":217.6,"nota":"6940"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":1806.0,"kg":57.0,"nota":"6946"},{"data":"2026-01-23","ano":2026,"mes":1,"semana":4,"dia_semana":"sexta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Barras","valor":9119.5,"kg":289.75,"nota":"6947"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":18907.4,"kg":636.5,"nota":"6948"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":2201.4,"kg":23.67,"nota":"6949"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Barras","valor":2643.5,"kg":80.75,"nota":"6950"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":18400.5,"kg":199.8,"nota":"6951"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":1460.9,"kg":15.54,"nota":"6952"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":16616.0,"kg":177.6,"nota":"6953"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":10385.0,"kg":111.0,"nota":"6953"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":10385.0,"kg":111.0,"nota":"6953"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":4154.0,"kg":44.4,"nota":"6953"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Aluminio","valor":2682.0,"kg":82.69,"nota":"6957"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Barras","valor":8730.0,"kg":285.0,"nota":"6958"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":1316.0,"kg":43.52,"nota":"6959"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":2911.3,"kg":31.08,"nota":"6959"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Cobre","valor":20140.0,"kg":212.0,"nota":"6960"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1746.0,"kg":57.0,"nota":"6961"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":5644.0,"kg":190.0,"nota":"6954"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":27762.0,"kg":281.0,"nota":"6962"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":28355.0,"kg":287.0,"nota":"6962"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":8990.0,"kg":91.0,"nota":"6962"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":45250.0,"kg":458.0,"nota":"6962"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":27762.0,"kg":281.0,"nota":"6962"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":95400.0,"kg":1014.85,"nota":"6966"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":6645.0,"kg":72.0,"nota":"6967"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":20460.0,"kg":222.0,"nota":"6967"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":19045.0,"kg":205.0,"nota":"6967"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":2214.0,"kg":21.0,"nota":"6955"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":1548.0,"kg":47.5,"nota":"6968"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":4515.0,"kg":142.5,"nota":"6969"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":4557.6,"kg":47.44,"nota":"6970"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":5083.0,"kg":161.5,"nota":"6971"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":8225.3,"kg":83.0,"nota":"6964"},{"data":"2026-01-26","ano":2026,"mes":1,"semana":5,"dia_semana":"segunda-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":15800.0,"kg":544.0,"nota":"6956"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":28947.6,"kg":307.88,"nota":"6972"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":29957.4,"kg":318.62,"nota":"6972"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":3360.0,"kg":36.0,"nota":"6973"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":6147.0,"kg":66.6,"nota":"6973"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Cobre","valor":336.6,"kg":2.76,"nota":"6974"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Cobre","valor":466.2,"kg":4.32,"nota":"6974"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Cobre","valor":652.2,"kg":6.3,"nota":"6974"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Cobre","valor":934.2,"kg":9.3,"nota":"6974"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Cobre","valor":1312.2,"kg":13.32,"nota":"6974"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":6053.6,"kg":64.77,"nota":"6977"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1023.4,"kg":32.3,"nota":"6978"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Barras","valor":6220.0,"kg":190.0,"nota":"6979"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":4515.0,"kg":163.2,"nota":"6980"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":935.0,"kg":9.2,"nota":"6975"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":1765.5,"kg":17.95,"nota":"6975"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":2384.0,"kg":23.8,"nota":"6975"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":11288.0,"kg":380.0,"nota":"6981"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":2630.0,"kg":28.2,"nota":"6976"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":3010.0,"kg":95.0,"nota":"6982"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":14110.0,"kg":475.0,"nota":"6983"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Cobre","valor":5300.0,"kg":51.61,"nota":"6984"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":14049.0,"kg":150.78,"nota":"6985"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":2740.0,"kg":28.16,"nota":"6986"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":6064.0,"kg":190.0,"nota":"6987"},{"data":"2026-01-27","ano":2026,"mes":1,"semana":5,"dia_semana":"terça-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":818.64,"kg":25.65,"nota":"6987"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":6020.0,"kg":190.0,"nota":"6988"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":3010.0,"kg":95.0,"nota":"6989"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":14110.0,"kg":475.0,"nota":"6990"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1001.65,"kg":31.83,"nota":"6991"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":15000.0,"kg":143.89,"nota":"6992"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Representantes","vendedor":"Representantes","produto":"Cobre","valor":11170.0,"kg":109.0,"nota":"6992"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":5497.7,"kg":57.72,"nota":"6993"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1135.46,"kg":44.39,"nota":"6993"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":1248.0,"kg":13.15,"nota":"6994"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":1676.0,"kg":17.75,"nota":"6994"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":857.5,"kg":8.95,"nota":"6994"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":8466.0,"kg":285.0,"nota":"6995"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":8318.0,"kg":88.8,"nota":"6996"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":2913.0,"kg":31.0,"nota":"6996"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Cobre","valor":431.32,"kg":4.55,"nota":"7000"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":233.3,"kg":2.38,"nota":"6997"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":39508.0,"kg":1330.0,"nota":"7001"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":7272.5,"kg":77.5,"nota":"6998"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Cobre","valor":10372.5,"kg":111.0,"nota":"6998"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1023.4,"kg":32.3,"nota":"6999"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Osvaldo","produto":"Barras","valor":3110.0,"kg":95.0,"nota":"7002"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Nazareno","produto":"Cobre","valor":1075.6,"kg":11.26,"nota":"7003"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Barras","valor":11288.0,"kg":380.0,"nota":"7004"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":14110.0,"kg":475.0,"nota":"7005"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":1095.0,"kg":37.32,"nota":"7006"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Vieira","produto":"Barras","valor":5644.0,"kg":190.0,"nota":"7006"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Ricardo","produto":"Aluminio","valor":2396.0,"kg":64.41,"nota":"7007"},{"data":"2026-01-28","ano":2026,"mes":1,"semana":5,"dia_semana":"quarta-feira","equipe":"Equipe Interna","vendedor":"Débora","produto":"Barras","valor":8466.0,"kg":285.0,"nota":"7008"}]};
+// Correções pontuais de Kg (quando o PDF traz casas decimais e foi lido arredondado)
+// Chave: nota|produto -> kg correto
+const KG_CORRECTIONS = {
+  "6752|Cobre": 12.4
+};
+function correctedKg(nota, produto, kg){
+  const k = `${nota||""}|${produto||""}`;
+  return (k in KG_CORRECTIONS) ? KG_CORRECTIONS[k] : kg;
+}
+
+
+// ---------- Utils ----------
+function brl(v){
+  if(v == null || !isFinite(v)) return "—";
+  return new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(v);
+}
+function num(v, d=0){
+  if(v == null || !isFinite(v)) return "—";
+  return new Intl.NumberFormat('pt-BR', { maximumFractionDigits:d, minimumFractionDigits:d }).format(v);
+}
+function pct(v, d=1){
+  if(v == null || !isFinite(v)) return "—";
+  return v.toFixed(d) + "%";
+}
+function badge(p){
+  if(p >= 100) return '<span class="badge ok">Meta batida</span>';
+  if(p >= 80) return '<span class="badge warn">No ritmo</span>';
+  return '<span class="badge bad">Atenção</span>';
+}
+function medal(i){ return i===0 ? "🥇" : i===1 ? "🥈" : i===2 ? "🥉" : "🏅"; }
+
+// ---------- Alvos de preço (localStorage) ----------
+function loadPriceTargets(){
+  try{
+    const raw = localStorage.getItem("alvosPrecoProduto");
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { Cobre:null, Barra:null, "Alumínio":null };
+}
+function savePriceTargets(t){
+  try{ localStorage.setItem("alvosPrecoProduto", JSON.stringify(t)); }catch(e){}
+}
+function statusClassPct(p){
+  if(p >= 100) return "ok";
+  if(p >= 80) return "warn";
+  return "bad";
+}
+
+// ---------- Filters ----------
+let autoOn = true;
+let autoTimer = null;
+
+function populateYear(){
+  const ySel = document.getElementById("yearSel");
+  ySel.innerHTML = "";
+  DATA.config.filters.years.forEach(y=>{
+    const opt = document.createElement("option");
+    opt.value = y; opt.textContent = y;
+    ySel.appendChild(opt);
+  });
+}
+function populateMonth(year){
+  const mSel = document.getElementById("monthSel");
+  mSel.innerHTML = "";
+  const months = DATA.config.filters.monthsByYear[year] || [];
+  months.forEach(m=>{
+    const opt = document.createElement("option");
+    opt.value = m; opt.textContent = String(m).padStart(2,"0");
+    mSel.appendChild(opt);
+  });
+}
+function populateWeek(year, month){
+  const wSel = document.getElementById("weekSel");
+  wSel.innerHTML = "";
+  const key = `${year}-${String(month).padStart(2,"0")}`;
+  const weeks = DATA.config.filters.weeksByYearMonth[key] || [];
+  weeks.forEach(w=>{
+    const opt = document.createElement("option");
+    opt.value = w; opt.textContent = `Semana ${w}`;
+    wSel.appendChild(opt);
+  });
+}
+
+// ---------- Data selection ----------
+function getFilterState(){
+  return {
+    team: document.getElementById("teamSel").value,
+    year: Number(document.getElementById("yearSel").value),
+    month: Number(document.getElementById("monthSel").value),
+    week: Number(document.getElementById("weekSel").value),
+  };
+}
+function filterTx({team, year, month, week}){
+  return DATA.tx.filter(r=>{
+    if(r.ano !== year) return false;
+    if(r.mes !== month) return false;
+    if(team !== "Todos" && r.equipe !== team) return false;
+    if(week && r.semana !== week) return false;
+    return true;
+  });
+}
+function filterMonthTx({team, year, month}){
+  return DATA.tx.filter(r=>{
+    if(r.ano !== year) return false;
+    if(r.mes !== month) return false;
+    if(team !== "Todos" && r.equipe !== team) return false;
+    return true;
+  });
+}
+
+// ---------- Charts (SVG) ----------
+function renderBarChartSimple(el, rows, key, maxBars=10){
+  el.innerHTML = "";
+  const width = el.clientWidth || 1000;
+  const height = el.clientHeight || 260;
+  const padL = 70, padR = 20, padT = 18, padB = 46;
+  const innerW = Math.max(1, width - padL - padR);
+  const innerH = Math.max(1, height - padT - padB);
+
+  const data = rows.slice(0, maxBars);
+  const maxY = Math.max(1, ...data.map(r => (r[key]||0)));
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width","100%"); svg.setAttribute("height","100%");
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+
+  // baseline
+  const base = document.createElementNS(svg.namespaceURI,"line");
+  base.setAttribute("x1", padL); base.setAttribute("x2", padL+innerW);
+  base.setAttribute("y1", padT+innerH); base.setAttribute("y2", padT+innerH);
+  base.setAttribute("stroke","rgba(255,255,255,.12)"); base.setAttribute("stroke-width","2");
+  svg.appendChild(base);
+
+  const barGap = 10;
+  const barW = Math.max(8, (innerW - barGap*(data.length-1)) / Math.max(1,data.length));
+
+  data.forEach((r,i)=>{
+    const v = (r[key]||0);
+    const h = (v/maxY) * innerH;
+    const x = padL + i*(barW+barGap);
+    const y = padT + (innerH - h);
+
+    const rect = document.createElementNS(svg.namespaceURI,"rect");
+    rect.setAttribute("x", x); rect.setAttribute("y", y);
+    rect.setAttribute("width", barW); rect.setAttribute("height", h);
+    rect.setAttribute("rx","10"); rect.setAttribute("ry","10");
+    rect.setAttribute("fill","rgba(82,168,255,.50)");
+    svg.appendChild(rect);
+
+    // value label
+    const t = document.createElementNS(svg.namespaceURI,"text");
+    t.setAttribute("x", x + barW/2); t.setAttribute("y", y - 8);
+    t.setAttribute("text-anchor","middle");
+    t.setAttribute("font-size","12");
+    t.setAttribute("fill","rgba(233,237,247,.92)");
+    t.textContent = brl(v);
+    svg.appendChild(t);
+
+    // x label
+    const l = document.createElementNS(svg.namespaceURI,"text");
+    l.setAttribute("x", x + barW/2); l.setAttribute("y", padT+innerH+28);
+    l.setAttribute("text-anchor","middle");
+    l.setAttribute("font-size","11");
+    l.setAttribute("fill","rgba(233,237,247,.70)");
+    const name = (r.vendedor||"").toString();
+    l.textContent = name.length>10 ? (name.slice(0,9)+"…") : name;
+    svg.appendChild(l);
+  });
+
+  el.appendChild(svg);
+}
+
+function renderLineChart(el, points, labels){
+  // points: [{xLabel, y}] in order
+  el.innerHTML = "";
+  const width = el.clientWidth || 1000;
+  const height = el.clientHeight || 240;
+  const padL = 70, padR = 20, padT = 18, padB = 42;
+  const innerW = Math.max(1, width - padL - padR);
+  const innerH = Math.max(1, height - padT - padB);
+
+  const maxY = Math.max(1, ...points.map(p => p.y || 0));
+  const minY = 0;
+
+  function xPos(i){
+    if(points.length <= 1) return padL + innerW/2;
+    return padL + (i/(points.length-1))*innerW;
+  }
+  function yPos(v){
+    const t = (v - minY) / (maxY - minY);
+    return padT + (1 - t) * innerH;
+  }
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width","100%"); svg.setAttribute("height","100%");
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+
+  // baseline grid
+  const base = document.createElementNS(svg.namespaceURI,"line");
+  base.setAttribute("x1", padL);
+  base.setAttribute("x2", padL+innerW);
+  base.setAttribute("y1", padT+innerH);
+  base.setAttribute("y2", padT+innerH);
+  base.setAttribute("stroke", "rgba(255,255,255,.10)");
+  svg.appendChild(base);
+
+  // path
+  let d = "";
+  points.forEach((p,i)=>{
+    const x = xPos(i);
+    const y = yPos(p.y||0);
+    d += (i===0 ? "M":"L") + x + " " + y + " ";
+  });
+  const path = document.createElementNS(svg.namespaceURI,"path");
+  path.setAttribute("d", d.trim());
+  path.setAttribute("fill","none");
+  path.setAttribute("stroke","rgba(82,168,255,.95)");
+  path.setAttribute("stroke-width","4");
+  path.setAttribute("stroke-linecap","round");
+  path.setAttribute("stroke-linejoin","round");
+  svg.appendChild(path);
+
+  // points + labels
+  points.forEach((p,i)=>{
+    const x = xPos(i);
+    const y = yPos(p.y||0);
+
+    const dot = document.createElementNS(svg.namespaceURI,"circle");
+    dot.setAttribute("cx", x);
+    dot.setAttribute("cy", y);
+    dot.setAttribute("r", 6);
+    dot.setAttribute("fill","rgba(82,168,255,.95)");
+    svg.appendChild(dot);
+
+    const val = document.createElementNS(svg.namespaceURI,"text");
+    val.setAttribute("x", x);
+    val.setAttribute("y", y - 18);
+    val.setAttribute("text-anchor","middle");
+    val.setAttribute("fill","rgba(233,237,247,.92)");
+    val.setAttribute("font-size","11");
+    val.setAttribute("font-weight","800");
+    val.textContent = brl(p.y||0);
+    svg.appendChild(val);
+
+    const lab = document.createElementNS(svg.namespaceURI,"text");
+    lab.setAttribute("x", x);
+    lab.setAttribute("y", padT + innerH + 28);
+    lab.setAttribute("text-anchor","middle");
+    lab.setAttribute("fill","rgba(233,237,247,.82)");
+    lab.setAttribute("font-size","14");
+    lab.setAttribute("font-weight","800");
+    lab.textContent = labels[i] || p.xLabel;
+    svg.appendChild(lab);
+  });
+
+  el.appendChild(svg);
+}
+
+function renderBarH(el, items, labelKey, valueKey, formatter){
+  el.innerHTML = "";
+  const width = el.clientWidth || 1000;
+  const height = el.clientHeight || 300;
+  const padL = 180, padR = 16, padT = 10, padB = 18;
+  const innerW = Math.max(1, width - padL - padR);
+  const innerH = Math.max(1, height - padT - padB);
+  const maxV = Math.max(1, ...items.map(i => i[valueKey] || 0));
+  const rowH = innerH / Math.max(1, items.length);
+  const barH = Math.max(12, rowH * 0.55);
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width","100%"); svg.setAttribute("height","100%");
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+
+  items.forEach((it, idx) => {
+    const y = padT + idx*rowH + (rowH - barH)/2;
+    const v = it[valueKey] || 0;
+    const w = (v / maxV) * innerW;
+
+    const label = document.createElementNS(svg.namespaceURI,"text");
+    label.setAttribute("x", 10);
+    label.setAttribute("y", y + barH*0.75);
+    label.setAttribute("fill","rgba(233,237,247,.92)");
+    label.setAttribute("font-size","12");
+    label.setAttribute("font-weight","800");
+    label.textContent = it[labelKey];
+    svg.appendChild(label);
+
+    const bg = document.createElementNS(svg.namespaceURI,"rect");
+    bg.setAttribute("x", padL);
+    bg.setAttribute("y", y);
+    bg.setAttribute("width", innerW);
+    bg.setAttribute("height", barH);
+    bg.setAttribute("rx", 8);
+    bg.setAttribute("fill","rgba(255,255,255,.06)");
+    svg.appendChild(bg);
+
+    const bar = document.createElementNS(svg.namespaceURI,"rect");
+    bar.setAttribute("x", padL);
+    bar.setAttribute("y", y);
+    bar.setAttribute("width", Math.max(2, w));
+    bar.setAttribute("height", barH);
+    bar.setAttribute("rx", 8);
+    bar.setAttribute("fill","rgba(82,168,255,.95)");
+    svg.appendChild(bar);
+
+    const val = document.createElementNS(svg.namespaceURI,"text");
+    val.setAttribute("x", padL + innerW);
+    val.setAttribute("y", y + barH*0.75);
+    val.setAttribute("text-anchor","end");
+    val.setAttribute("fill","rgba(233,237,247,.86)");
+    val.setAttribute("font-size","12");
+    val.setAttribute("font-weight","800");
+    val.textContent = formatter(v, it);
+    svg.appendChild(val);
+  });
+
+  el.appendChild(svg);
+}
+
+
+function mediaPorSemana(valor, semanas){
+  return semanas ? (valor / semanas) : 0;
+}
+function mediaPorDia(valor, dias){
+  return dias ? (valor / dias) : 0;
+}
+
+// ---------- Targets (Preço Alvo) ----------
+function loadTargets(){
+  try{
+    const raw = localStorage.getItem("priceTargets");
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  const t = {};
+  (DATA.products||[]).forEach(p=> t[p] = null);
+  return t;
+}
+function saveTargets(t){
+  try{ localStorage.setItem("priceTargets", JSON.stringify(t)); }catch(e){}
+}
+
+// ---------- Render ----------
+let sortKey = "realizado";
+let cardsPageIndex = 0;
+let cardsTimer = null;
+function render(){
+  const state = getFilterState();
+  const weekTx = filterTx(state);
+  const monthTx = filterMonthTx(state);
+
+  // KPIs (REMOVIDO preço médio geral)
+  const realizedWeek = weekTx.reduce((a,r)=>a+(r.valor||0),0);
+  const kgWeek = weekTx.reduce((a,r)=>a+(r.kg||0),0);
+  const realizedMonth = monthTx.reduce((a,r)=>a+(r.valor||0),0);
+  const kgMonth = monthTx.reduce((a,r)=>a+(r.kg||0),0);
+
+  // meta mensal do time (sempre soma metas individuais; se filtro equipe, mantém meta total — você pode mudar depois)
+  const metaMonthTeam = Object.values(DATA.config.metaMensal||{}).reduce((a,v)=>a+(v||0),0);
+  const pctMeta = metaMonthTeam ? (realizedMonth/metaMonthTeam*100) : 0;
+  const falta = Math.max(0, metaMonthTeam - realizedMonth);
+
+  const kpis = [
+    { label:"Realizado (Semana)", value: brl(realizedWeek), mini:`Kg na semana: ${num(kgWeek,0)} kg`, span:"span-3" },
+    { label:"Realizado (Mês)", value: brl(realizedMonth), mini:`Kg no mês: ${num(kgMonth,0)} kg`, span:"span-3" },
+    { label:"Meta (Mês)", value: brl(metaMonthTeam), mini:`Falta: ${brl(falta)}`, span:"span-3" },
+    { label:"% Meta (Mês)", value: pct(pctMeta,1), mini:`Equipe: ${state.team}`, span:"span-3" },
+  ];
+  const kEl = document.getElementById("kpis");
+  kEl.innerHTML = "";
+  kpis.forEach(k=>{
+    const d = document.createElement("div");
+    d.className = `card ${k.span}`;
+    d.innerHTML = `<div class="label">${k.label}</div><div class="value">${k.value}</div><div class="mini">${k.mini}</div>`;
+    kEl.appendChild(d);
+  });
+
+  // Week line chart (Seg-Sex)
+  const days = ["segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira"];
+  const mapDay = new Map(days.map(d=>[d,0]));
+  weekTx.forEach(r=>{
+    if(mapDay.has(r.dia_semana)) mapDay.set(r.dia_semana, mapDay.get(r.dia_semana) + (r.valor||0));
+  });
+  const points = days.map(d=>({xLabel:d, y: mapDay.get(d)||0}));
+  const labels = ["segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira"];
+
+  // Progress bar
+  const prog = Math.max(0, Math.min(120, pctMeta || 0));
+  const barEl = document.getElementById("progBar");
+  barEl.style.width = prog + "%";
+
+  const metaHit = (metaMonthTeam || 0) > 0 && (realizedMonth || 0) >= (metaMonthTeam || 0);
+  // rótulo dentro da barra quando bater a meta
+  barEl.textContent = metaHit ? "META BATIDA ✅" : "";
+  // garante legibilidade e centralização do rótulo (sem afetar quando vazio)
+  barEl.style.display = "flex";
+  barEl.style.alignItems = "center";
+  barEl.style.justifyContent = "center";
+  barEl.style.fontWeight = "900";
+  barEl.style.fontSize = "12px";
+  barEl.style.color = metaHit ? "rgba(233,237,247,.95)" : "transparent";
+  barEl.style.textShadow = metaHit ? "0 2px 8px rgba(0,0,0,.45)" : "none";
+
+  document.getElementById("progText").innerHTML = `
+    <span class="pill">Realizado: ${brl(realizedMonth)}</span>
+    <span class="pill">Meta: ${brl(metaMonthTeam)}</span>
+    <span class="pill">% Meta: ${pct(pctMeta,1)}</span>
+    ${metaHit ? '<span class="badge ok">✅ Meta batida</span>' : ''}
+  `;
+
+
+  // Ranking (mensal — para metas)
+  const byVendor = {};
+  const buckets = {}; // por vendedor: semanas/dias (R$)
+  monthTx.forEach(r=>{
+    const v=r.vendedor || "—";
+    if(!byVendor[v]) byVendor[v] = {vendedor:v, realizado:0, kg:0, notas:new Set()};
+    byVendor[v].realizado += (r.valor||0);
+    byVendor[v].kg += (r.kg||0);
+    byVendor[v].notas.add(r.nota);
+
+    if(!buckets[v]) buckets[v] = {semanas:{}, dias:{}};
+    if(r.semana!=null){
+      buckets[v].semanas[r.semana] = (buckets[v].semanas[r.semana]||0) + (r.valor||0);
+    }
+    if(r.data!=null){
+      buckets[v].dias[r.data] = (buckets[v].dias[r.data]||0) + (r.valor||0);
+    }
+  });
+
+  const metas = DATA.config.metaMensal || {};
+
+  
+  function trendDaily(v){
+    const d = buckets[v]?.dias || {};
+    const keys = Object.keys(d).sort();
+    const vals = keys.map(k=>d[k]);
+    if(vals.length < 4) return {cls:"flat", txt:"—", alert:false, wowPct:0, fire:false};
+
+    const last2 = (vals[vals.length-1] + vals[vals.length-2]) / 2;
+    const prev2 = (vals[vals.length-3] + vals[vals.length-4]) / 2;
+
+    // Se não há base, não calcula tendência
+    if(prev2 <= 0) return {cls:"flat", txt:"—", alert:false, wowPct:0, fire:false};
+
+    const factor = last2 / prev2;          // ex.: 6.8 => 6,8x (alta) | 0.2 => 5,0x menor (queda)
+    const chg = (factor - 1) * 100;        // % equivalente
+
+    const down = chg < -10;
+    const up = chg > 10;
+
+    const fmtX = (x) => `${x.toFixed(1).replace(".",",")}x`;
+
+    let txt = `${chg.toFixed(0)}%`;
+
+    if(down){
+      // Queda forte: exibir "x vezes menor" quando for intuitivo (<= 0,5x = -50% ou pior)
+      if(last2 > 0 && factor <= 0.5){
+        const downFactor = prev2 / last2; // ex.: 5 => 5,0x menor
+        txt = `⬇ ${fmtX(downFactor)}`;
+      } else {
+        txt = `⬇ ${Math.abs(chg).toFixed(0)}%`;
+      }
+    } else if(up){
+      // Alta forte: exibir "x vezes" quando >= 2x
+      txt = (factor >= 2) ? `⬆ ${fmtX(factor)}` : `⬆ ${chg.toFixed(0)}%`;
+    } else {
+      // Neutro (sem seta). Se ainda assim for >= 2x, mantém em x
+      txt = (factor >= 2) ? fmtX(factor) : `${chg.toFixed(0)}%`;
+    }
+
+    return {
+      cls: down ? "down" : (up ? "up" : "flat"),
+      txt,
+      alert: down,
+      wowPct: chg,
+      fire: up
+    };
+  }
+
+
+  function wowWeekly(v){
+    const w = buckets[v]?.semanas || {};
+    const keys = Object.keys(w).map(x=>Number(x)).filter(x=>isFinite(x)).sort((a,b)=>a-b);
+    if(keys.length < 2) return {wowPct:0, fire:false};
+    const prev = w[keys[keys.length-2]] || 0;
+    const last = w[keys[keys.length-1]] || 0;
+    if(prev<=0) return {wowPct:0, fire:false};
+    const pct = ((last - prev) / prev) * 100;
+    return {wowPct:pct, fire:pct>10};
+  }
+
+  let ranked = Object.values(byVendor).map(o=>{
+    const meta = metas[o.vendedor] || 0;
+    const pctM = meta ? (o.realizado/meta*100) : 0;
+
+    const semanasV = Object.keys(buckets[o.vendedor]?.semanas || {}).length || 0;
+    const diasV = Object.keys(buckets[o.vendedor]?.dias || {}).length || 0;
+    const mediaSem = semanasV ? (o.realizado / semanasV) : 0;
+    const mediaDia = diasV ? (o.realizado / diasV) : 0;
+
+    const t = trendDaily(o.vendedor);
+    const ww = wowWeekly(o.vendedor);
+
+    return {
+      vendedor:o.vendedor,
+      realizado:o.realizado,
+      kg:o.kg,
+      meta,
+      pctMeta:pctM,
+      mediaSem,
+      mediaDia,
+      trendHtml:`<span class="trend ${t.cls}">${t.txt}</span>`,
+      alertRow:t.alert,
+      wowPct: ww.wowPct,
+      fire: ww.fire
+    };
+  });
+
+  // ordenação do ranking conforme toggle
+  ranked.sort((a,b)=> (b[sortKey]||0) - (a[sortKey]||0));
+  // Render Top 3 + gráfico + tabela completa
+  
+  
+  const top3El = document.getElementById("top3");
+  const pageInfo = document.getElementById("rankPageInfo");
+  const PER_PAGE = 6;
+
+  const totalPages = Math.max(1, Math.ceil(ranked.length / PER_PAGE));
+  if(cardsPageIndex >= totalPages) cardsPageIndex = 0;
+
+  if(pageInfo){
+    pageInfo.textContent = `Página ${cardsPageIndex+1}/${totalPages}`;
+  }
+
+  if(top3El){
+    top3El.innerHTML = "";
+    const start = cardsPageIndex * PER_PAGE;
+    const page = ranked.slice(start, start + PER_PAGE);
+
+    page.forEach((r,i)=>{
+      const pos = start + i + 1;
+      const c = document.createElement("div");
+      c.className = "card span-4";
+      c.innerHTML = `
+        <div class="label">#${pos} • ${r.vendedor}${r.fire ? `<span class="badgefire">🔥 +${r.wowPct.toFixed(0)}%</span>` : ``}${r.pctMeta>=100 ? `<span class="meta-batida">META BATIDA ✅</span>` : ``}</div>
+        <div class="value">${brl(r.realizado)}</div>
+        <div class="mini">Meta: ${brl(r.meta)} • <span class="badgecell ${statusClassPct(r.pctMeta)}">${pct(r.pctMeta,1)}</span> • ${r.trendHtml}</div>
+        <div class="mini">Média/sem: <strong>${brl(r.mediaSem)}</strong> • Média/dia: <strong>${brl(r.mediaDia)}</strong></div>
+        <div class="mini">Kg: ${num(r.kg,0)}</div>
+      `;
+      top3El.appendChild(c);
+    });
+  }
+
+  // auto-rotacionar cards (respeita Auto ON/OFF)
+  if(cardsTimer){ clearInterval(cardsTimer); cardsTimer = null; }
+  if(window.__AUTO__){
+    cardsTimer = setInterval(()=>{
+      cardsPageIndex = (cardsPageIndex + 1) % totalPages;
+      render();
+    }, 9000);
+  }
+
+  const chartEl = document.getElementById("rankChart");
+  if(chartEl){
+    renderBarChartSimple(chartEl, ranked, sortKey, 10);
+  }
+
+  const tbody = document.getElementById("rankRows");
+  if(tbody){
+    tbody.innerHTML = "";
+    ranked.forEach((r,idx)=>{
+      const tr = document.createElement("tr");
+      if(r.alertRow) tr.classList.add("row-alert");
+      tr.innerHTML = `
+        <td>${idx+1}</td>
+        <td>${r.vendedor}${r.fire ? `<span class="badgefire">🔥 +${r.wowPct.toFixed(0)}%</span>` : ``}</td>
+        <td class="right">${brl(r.realizado)}</td>
+        <td class="right">${brl(r.meta)}</td>
+        <td class="right"><span class="badgecell ${statusClassPct(r.pctMeta)}">${pct(r.pctMeta,1)}</span></td>
+        <td class="right">${r.trendHtml}</td>
+        <td class="right">${num(r.kg,0)}</td>
+        <td class="right">${brl(r.mediaSem)}</td>
+        <td class="right">${brl(r.mediaDia)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+
+// Resumo por vendedor: ticket médio e peso vendido por produto (mês)
+  const produtosChave = ["Cobre","Barra","Alumínio"];
+  const alvos = loadPriceTargets();
+
+  // Normaliza nomes de produto (mapeia prefixos comuns)
+  function normProd(p){
+    const t = (p||"").toLowerCase();
+    if(t.includes("cobre")) return "Cobre";
+    if(t.includes("barra")) return "Barra";
+    if(t.includes("alum")) return "Alumínio";
+    return null;
+  }
+
+  const vendedorSet = new Set(Object.keys(DATA.config.metaMensal||{}));
+  monthTx.forEach(r => vendedorSet.add(r.vendedor || "—"));
+
+  const resumo = {};
+  Array.from(vendedorSet).forEach(v=>{
+    resumo[v] = {
+      vendedor: v,
+      meta: (DATA.config.metaMensal||{})[v] || 0,
+      realizado: 0,
+      prod: {
+        "Cobre": {fat:0, kg:0, notas:new Set()},
+        "Barra": {fat:0, kg:0, notas:new Set()},
+        "Alumínio": {fat:0, kg:0, notas:new Set()},
+      }
+    };
+  });
+
+  monthTx.forEach(r=>{
+    const v = r.vendedor || "—";
+    const p = normProd(r.produto);
+    const obj = resumo[v] || (resumo[v] = {vendedor:v, meta:0, realizado:0, prod:{
+      "Cobre": {fat:0, kg:0, notas:new Set()},
+      "Barra": {fat:0, kg:0, notas:new Set()},
+      "Alumínio": {fat:0, kg:0, notas:new Set()},
+    }});
+    const val = (r.valor||0);
+    const kg = correctedKg(r.nota, r.produto, (r.kg||0));
+    obj.realizado += val;
+    if(p){
+      obj.prod[p].fat += val;
+      obj.prod[p].kg  += kg;
+      obj.prod[p].notas.add(r.nota);
+    }
+  });
+
+  // ordem: metas primeiro, depois extras
+  const order = Object.keys(DATA.config.metaMensal||{});
+  const extras = Object.keys(resumo).filter(v => !order.includes(v));
+  const orderedVendedores = [...order, ...extras];
+
+  // total
+  const total = {
+    meta: Object.values(DATA.config.metaMensal||{}).reduce((a,v)=>a+(v||0),0),
+    realizado: 0,
+    prod: {
+      "Cobre": {fat:0, kg:0, notas:new Set()},
+      "Barra": {fat:0, kg:0, notas:new Set()},
+      "Alumínio": {fat:0, kg:0, notas:new Set()},
+    }
+  };
+
+  const tbodyMix = document.getElementById("sellerMixRows");
+  tbodyMix.innerHTML = "";
+
+  function precoMed(obj, p){
+    const kg = obj.prod[p].kg || 0;
+    return kg ? (obj.prod[p].fat / kg) : 0;
+  }
+
+  orderedVendedores.forEach(v=>{
+    const r = resumo[v];
+    if(!r) return;
+
+    total.realizado += (r.realizado||0);
+    produtosChave.forEach(p=>{
+      total.prod[p].fat += r.prod[p].fat;
+      total.prod[p].kg  += r.prod[p].kg;
+      r.prod[p].notas.forEach(n=> total.prod[p].notas.add(n));
+    });
+
+    const aCumprirNum = (r.meta||0) - (r.realizado||0);
+    const metaBatida = (r.meta||0) > 0 && (r.realizado||0) >= (r.meta||0);
+    const aCumprirHtml = metaBatida ? '<span class="meta-batida">Meta batida</span>' : brl(Math.max(0, aCumprirNum));
+    const pctAting = (r.meta||0) ? ((r.realizado||0)/(r.meta||0)*100) : 0;
+
+    const tr = document.createElement("tr");
+    if(r.alertRow) tr.classList.add("row-alert");
+    tr.innerHTML = `
+      <td><strong>${r.vendedor}</strong></td>
+      <td class="right">${brl(r.meta||0)}</td>
+      <td class="right">${brl(r.realizado||0)}</td>
+      <td class="right">${aCumprirHtml}</td>
+      <td class="right"><span class="badgecell ${statusClassPct(pctAting)}">${pct(pctAting,1)}</span></td>
+      <td class="right ${ (alvos["Cobre"]!=null && precoMed(r,"Cobre") < alvos["Cobre"]) ? "cell-target-bad" : (alvos["Cobre"]!=null ? "cell-target-ok" : "") }">${brl(precoMed(r,"Cobre"))}</td>
+      <td class="right ${ (alvos["Barra"]!=null && precoMed(r,"Barra") < alvos["Barra"]) ? "cell-target-bad" : (alvos["Barra"]!=null ? "cell-target-ok" : "") }">${brl(precoMed(r,"Barra"))}</td>
+      <td class="right ${ (alvos["Alumínio"]!=null && precoMed(r,"Alumínio") < alvos["Alumínio"]) ? "cell-target-bad" : (alvos["Alumínio"]!=null ? "cell-target-ok" : "") }">${brl(precoMed(r,"Alumínio"))}</td>
+      <td class="right">${num(r.prod["Cobre"].kg||0,0)}</td>
+      <td class="right">${num(r.prod["Barra"].kg||0,0)}</td>
+      <td class="right">${num(r.prod["Alumínio"].kg||0,0)}</td>
+    `;
+    tbodyMix.appendChild(tr);
+  });
+
+  const totalACumprirNum = (total.meta||0) - (total.realizado||0);
+  const totalMetaBatida = (total.meta||0) > 0 && (total.realizado||0) >= (total.meta||0);
+  const totalACumprirHtml = totalMetaBatida ? '<span class="meta-batida">Meta batida</span>' : brl(Math.max(0, totalACumprirNum));
+  const totalPct = (total.meta||0) ? ((total.realizado||0)/(total.meta||0)*100) : 0;
+
+  function totalPreco(p){
+    const kg = total.prod[p].kg || 0;
+    return kg ? (total.prod[p].fat / kg) : 0;
+  }
+
+  const trTot = document.createElement("tr");
+  trTot.innerHTML = `
+    <td><strong>Geral Equipe</strong></td>
+    <td class="right"><strong>${brl(total.meta||0)}</strong></td>
+    <td class="right"><strong>${brl(total.realizado||0)}</strong></td>
+    <td class="right"><strong>${totalACumprirHtml}</strong></td>
+    <td class="right"><span class="badgecell ${statusClassPct(totalPct)}"><strong>${pct(totalPct,1)}</strong></span></td>
+    <td class="right ${ (alvos["Cobre"]!=null && totalPreco("Cobre") < alvos["Cobre"]) ? "cell-target-bad" : (alvos["Cobre"]!=null ? "cell-target-ok" : "") }"><strong>${brl(totalPreco("Cobre"))}</strong></td>
+    <td class="right ${ (alvos["Barra"]!=null && totalPreco("Barra") < alvos["Barra"]) ? "cell-target-bad" : (alvos["Barra"]!=null ? "cell-target-ok" : "") }"><strong>${brl(totalPreco("Barra"))}</strong></td>
+    <td class="right ${ (alvos["Alumínio"]!=null && totalPreco("Alumínio") < alvos["Alumínio"]) ? "cell-target-bad" : (alvos["Alumínio"]!=null ? "cell-target-ok" : "") }"><strong>${brl(totalPreco("Alumínio"))}</strong></td>
+    <td class="right"><strong>${num(total.prod["Cobre"].kg||0,0)}</strong></td>
+    <td class="right"><strong>${num(total.prod["Barra"].kg||0,0)}</strong></td>
+    <td class="right"><strong>${num(total.prod["Alumínio"].kg||0,0)}</strong></td>
+  `;
+  tbodyMix.appendChild(trTot);
+
+  document.getElementById("foot").textContent =
+    ``;
+}
+
+// ---------- Auto rotate ----------
+function setAuto(on){
+  // Auto = auto-rotativo do CARROSSEL (não altera período)
+  autoOn = !!on;
+  document.getElementById("autoBtn").textContent = autoOn ? "ON" : "OFF";
+  try{ localStorage.setItem('painelAuto', autoOn ? '1' : '0'); }catch(e){}
+
+  if(autoTimer){
+    clearInterval(autoTimer);
+    autoTimer = null;
+  }
+
+  if(autoOn){
+    // 12 segundos por tela
+    autoTimer = setInterval(()=>{
+      // Preferir API exposta do carrossel; fallback para clique no botão
+      if(window.__carouselNext){
+        window.__carouselNext();
+      }else{
+        const btn = document.getElementById('slideNext');
+        if(btn) btn.click();
+      }
+    }, 12000);
+  }
+}
+
+
+// ---------- Fullscreen ----------
+function toggleFullscreen(){
+  const el = document.documentElement;
+  if(!document.fullscreenElement){
+    el.requestFullscreen && el.requestFullscreen();
+  }else{
+    document.exitFullscreen && document.exitFullscreen();
+  }
+}
+
+// ---------- Init ----------
+function init(){
+  populateYear();
+  const d = DATA.config.filters.default;
+  document.getElementById("teamSel").value = d.team;
+
+  const ySel = document.getElementById("yearSel");
+  ySel.value = String(d.year);
+
+  populateMonth(d.year);
+  const mSel = document.getElementById("monthSel");
+  mSel.value = String(d.month);
+
+  populateWeek(d.year, d.month);
+  const wSel = document.getElementById("weekSel");
+  wSel.value = String(d.week);
+
+  ySel.addEventListener("change", ()=>{
+    populateMonth(Number(ySel.value));
+    populateWeek(Number(ySel.value), Number(mSel.value));
+    if(wSel.options.length) wSel.value = wSel.options[0].value;
+    render();
+  });
+  mSel.addEventListener("change", ()=>{
+    populateWeek(Number(ySel.value), Number(mSel.value));
+    if(wSel.options.length) wSel.value = wSel.options[0].value;
+    render();
+  });
+  wSel.addEventListener("change", render);
+  document.getElementById("teamSel").addEventListener("change", render);
+
+  document.getElementById("fsBtn").addEventListener("click", toggleFullscreen);
+
+  const autoBtn = document.getElementById("autoBtn");
+  autoBtn.addEventListener("click", ()=> setAuto(!autoOn));
+
+  window.addEventListener("resize", ()=>{ clearTimeout(window.__rt); window.__rt=setTimeout(render, 120); });
+
+  
+  // alvos de preço (inputs)
+  const alvos0 = loadPriceTargets();
+  const inC = document.getElementById("alvoCobre");
+  const inB = document.getElementById("alvoBarra");
+  const inA = document.getElementById("alvoAluminio");
+  if(inC) inC.value = (alvos0["Cobre"]!=null) ? alvos0["Cobre"] : "";
+  if(inB) inB.value = (alvos0["Barra"]!=null) ? alvos0["Barra"] : "";
+  if(inA) inA.value = (alvos0["Alumínio"]!=null) ? alvos0["Alumínio"] : "";
+
+  const btnSave = document.getElementById("salvarAlvos");
+  if(btnSave){
+    btnSave.addEventListener("click", ()=>{
+      const t = {
+        "Cobre": inC && inC.value!=="" ? Number(inC.value) : null,
+        "Barra": inB && inB.value!=="" ? Number(inB.value) : null,
+        "Alumínio": inA && inA.value!=="" ? Number(inA.value) : null
+      };
+      savePriceTargets(t);
+      render();
+    });
+  }
+
+setAuto(true);
+
+  // ranking: alternar critério de ordenação
+  document.querySelectorAll(".tbtn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll(".tbtn").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      sortKey = btn.dataset.sort || "realizado";
+      cardsPageIndex = 0;
+      render();
+    });
+  });
+
+
+  // pager do ranking (cards)
+  const prev = document.getElementById("rankPrev");
+  const next = document.getElementById("rankNext");
+  if(prev) prev.addEventListener("click", ()=>{
+    cardsPageIndex = Math.max(0, cardsPageIndex - 1);
+    render();
+  });
+  if(next) next.addEventListener("click", ()=>{
+    cardsPageIndex = cardsPageIndex + 1;
+    render();
+  });
+
+  render();
+}
+init();
+
+// ===== Tela 1: Ritmo necessário + Alerta (usa DATA.tx / filtros) =====
+
+// --- Dias úteis (São Paulo - Capital): fins de semana + feriados nacionais/estaduais/municipais (principais) ---
+function _pad2(n){ return String(n).padStart(2,"0"); }
+function _ymd(d){ return `${d.getFullYear()}-${_pad2(d.getMonth()+1)}-${_pad2(d.getDate())}`; }
+function _easterDate(y){
+  // Algoritmo de Meeus/Jones/Butcher (Greg.) — retorna Date local
+  const a = y % 19;
+  const b = Math.floor(y/100);
+  const c = y % 100;
+  const d = Math.floor(b/4);
+  const e = b % 4;
+  const f = Math.floor((b+8)/25);
+  const g = Math.floor((b-f+1)/3);
+  const h = (19*a + b - d - g + 15) % 30;
+  const i = Math.floor(c/4);
+  const k = c % 4;
+  const l = (32 + 2*e + 2*i - h - k) % 7;
+  const m = Math.floor((a + 11*h + 22*l)/451);
+  const month = Math.floor((h + l - 7*m + 114)/31) - 1; // 0-based
+  const day = ((h + l - 7*m + 114) % 31) + 1;
+  return new Date(y, month, day);
+}
+function _addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+function _holidaySetSP(y){
+  const set = new Set();
+  // Fixos (nacionais)
+  [
+    [1,1],   // Confraternização Universal
+    [4,21],  // Tiradentes
+    [5,1],   // Dia do Trabalho
+    [9,7],   // Independência
+    [10,12], // N. Sra. Aparecida
+    [11,2],  // Finados
+    [11,15], // Proclamação da República
+    [12,25], // Natal
+  ].forEach(([m,d])=> set.add(`${y}-${_pad2(m)}-${_pad2(d)}`));
+
+  // São Paulo (Capital/Estado)
+  set.add(`${y}-01-25`); // Aniversário de SP (municipal)
+  set.add(`${y}-07-09`); // Revolução Constitucionalista (estadual - SP)
+  set.add(`${y}-11-20`); // Consciência Negra (estadual - SP)
+
+  // Móveis (base Páscoa)
+  const easter = _easterDate(y);
+  const carnavalSeg = _addDays(easter, -48);
+  const carnavalTer = _addDays(easter, -47);
+  const sextaSanta  = _addDays(easter, -2);
+  const corpusChristi = _addDays(easter, 60);
+
+  [carnavalSeg, carnavalTer, sextaSanta, corpusChristi].forEach(d => set.add(_ymd(d)));
+  return set;
+}
+function _isBusinessDaySP(d, holidaySet){
+  const dow = d.getDay(); // 0 dom .. 6 sáb
+  if(dow===0 || dow===6) return false;
+  return !holidaySet.has(_ymd(d));
+}
+
+function _nextBusinessDaySP(dateObj, year, month){
+  // retorna o próximo dia útil (sempre depois da data informada)
+  const hol = _holidaySetSP(year);
+  const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+  d.setDate(d.getDate()+1);
+  while(d.getMonth() === (month-1) && !_isBusinessDaySP(d, hol)){
+    d.setDate(d.getDate()+1);
+  }
+  return d;
+}
+function _businessDaysInMonthSP(year, month){
+  const hol = _holidaySetSP(year);
+  const lastDay = new Date(year, month, 0).getDate();
+  let count = 0;
+  for(let day=1; day<=lastDay; day++){
+    const d = new Date(year, month-1, day);
+    if(_isBusinessDaySP(d, hol)) count++;
+  }
+  return count;
+}
+
+function _businessDaysElapsedSP(toDateInclusive, year, month){
+  // conta dias úteis do dia 1 até toDateInclusive (inclui o dia se for útil)
+  const hol = _holidaySetSP(year);
+  const last = toDateInclusive.getDate();
+  let count = 0;
+  for(let day=1; day<=last; day++){
+    const d = new Date(year, month-1, day);
+    if(_isBusinessDaySP(d, hol)) count++;
+  }
+  return count;
+}
+
+function _businessDaysRemainingSP(fromDateInclusive, year, month){
+  // conta dias úteis a partir de fromDateInclusive (inclui o dia se for útil); se não for útil, pula para o próximo útil
+  const last = new Date(year, month, 0).getDate();
+  const hol = _holidaySetSP(year);
+
+  let startDay = fromDateInclusive.getDate();
+  // ajusta para o próximo dia útil, se necessário
+  while(startDay <= last){
+    const d0 = new Date(year, month-1, startDay);
+    if(_isBusinessDaySP(d0, hol)) break;
+    startDay++;
+  }
+
+  let count = 0;
+  for(let day = startDay; day<=last; day++){
+    const d = new Date(year, month-1, day);
+    if(_isBusinessDaySP(d, hol)) count++;
+  }
+  return count;
+}
+
+function renderRitmo(){
+  const elDias = document.getElementById("rtDias");
+  const elFat  = document.getElementById("rtFatDia");
+  const elKg   = document.getElementById("rtKgDia");
+  const elAl   = document.getElementById("rtAlert");
+  if(!elDias || !elFat || !elKg || !elAl) return;
+
+  const st = getFilterState();
+
+  const y = Number(st.year);
+  const mo = Number(st.month);
+  const diasNoMes = new Date(y, mo, 0).getDate();
+  const hoje = new Date();
+  const ehMesAtual = (y===hoje.getFullYear() && mo===hoje.getMonth()+1);
+
+  // Transações do mês (para definir a data de atualização)
+  const monthTx = filterTx({team: st.team, year: y, month: mo, week: null});
+
+  // Referência para ritmo/dias úteis:
+  // - se houver vendas no mês filtrado, usa a ÚLTIMA data da base (data de atualização)
+  // - e começa a contar a partir do PRÓXIMO dia útil (não conta o dia da atualização)
+  // - se não houver vendas, usa hoje (mês atual) ou meio do mês (mês histórico)
+  let refDate;
+  if(monthTx.length){
+    const maxDateStr = monthTx.reduce((m,r)=> (String(r.data) > String(m) ? r.data : m), monthTx[0].data);
+    const parts = String(maxDateStr).split("-");
+    refDate = new Date(Number(parts[0]), Number(parts[1])-1, Number(parts[2]));
+    refDate = _nextBusinessDaySP(refDate, y, mo);
+  }else{
+    const refDay = ehMesAtual ? hoje.getDate() : Math.ceil(diasNoMes/2);
+    refDate = new Date(y, mo-1, refDay);
+    if(ehMesAtual) refDate = _nextBusinessDaySP(refDate, y, mo);
+  }
+
+  // Dias úteis (SP capital): restantes incluem o dia de referência se for útil
+  const diasRestantes = _businessDaysRemainingSP(refDate, y, mo);
+  const diasPassados = Math.max(1, _businessDaysElapsedSP(new Date(refDate.getFullYear(), refDate.getMonth(), Math.max(1, refDate.getDate()-1)), y, mo));
+  const realizadoMes = monthTx.reduce((a,r)=>a+(Number(r.valor)||0),0);
+  const kgMes = monthTx.reduce((a,r)=>a+(Number(r.kg)||0),0);
+
+  const metaMes = Object.values(DATA.config.metaMensal||{}).reduce((a,v)=>a+(Number(v)||0),0);
+  const falta = Math.max(0, metaMes - realizadoMes);
+
+  const precoMedio = kgMes>0 ? (realizadoMes/kgMes) : 0;
+  const faltaKg = (precoMedio>0) ? (falta/precoMedio) : 0;
+
+  const ritmoNecFat = (diasRestantes>0) ? (falta/diasRestantes) : 0;
+  const ritmoNecKg  = (diasRestantes>0) ? (faltaKg/diasRestantes) : 0;
+  const ritmoAtualFat = (diasPassados>0) ? (realizadoMes/diasPassados) : 0;
+
+  elDias.textContent = diasRestantes.toLocaleString("pt-BR");
+  elFat.textContent  = ritmoNecFat.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  elKg.textContent   = Math.round(ritmoNecKg).toLocaleString("pt-BR") + " kg";
+
+  // ===== Semáforo + Projeção (Tela 1) =====
+  const ratio = (ritmoNecFat>0) ? (ritmoAtualFat/ritmoNecFat) : 0;
+  const ok = ratio >= 1;
+  const warn = (!ok) && (ratio >= 0.90); // até 10% abaixo do necessário
+  const dotCls = ok ? "ok" : (warn ? "warn" : "bad");
+  const badge = ok ? "🟢" : (warn ? "🟡" : "🔴");
+  const statusTxt = ok ? "Ritmo atual suficiente" : (warn ? "Ritmo perto do necessário" : "Ritmo atual abaixo do necessário");
+
+  // Projeção de fechamento do mês (mantendo o ritmo atual)
+  const totalBiz = (typeof _businessDaysInMonthSP === "function") ? _businessDaysInMonthSP(y, mo) : (diasPassados + diasRestantes);
+  const projFech = ritmoAtualFat * totalBiz;
+  const projPct  = (metaMes>0) ? (projFech/metaMes) : 0;
+
+  const fmtBRL = (v)=> v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  const fmtPct = (v)=> (v*100).toFixed(1) + "%";
+
+  elAl.classList.remove("ok","warn","bad");
+  elAl.classList.add(dotCls);
+
+  
+  // Card de status (sem projeção aqui)
+  elAl.innerHTML = `
+    <div class="rtWrap">
+      <span class="rtDot ${dotCls}"></span>
+      <div class="rtText">
+        <div class="rtTitle">${badge} ${statusTxt}</div>
+      </div>
+    </div>
+  `;
+
+  // Card separado de projeção
+  const elProj = document.getElementById("rtProj");
+  const elProjPct = document.getElementById("rtProjPct");
+  const elProjWrap = document.getElementById("projWrap");
+  if(elProj) elProj.textContent = fmtBRL(projFech);
+  if(elProjPct) elProjPct.textContent = fmtPct(projPct);
+
+  if(elProjWrap){
+    elProjWrap.classList.remove("ok","warn","bad");
+    // usa a projeção vs meta como semáforo
+    const projCls = (projFech>=metaMes) ? "ok" : ((projFech>=metaMes*0.9) ? "warn" : "bad");
+    elProjWrap.classList.add(projCls);
+  }
+}
+
+// injeta no render principal, sem alterar o resto
+(function(){
+  if(typeof render === "function" && !window.__RITMO_PATCH__){
+    window.__RITMO_PATCH__ = true;
+    const _old = render;
+    render = function(){
+      _old();
+      try{ renderRitmo(); }catch(e){}
+    };
+    try{ renderRitmo(); }catch(e){}
+  }
+})();
+
+
+// Ritmo: garante estado inicial ao carregar
+document.addEventListener('DOMContentLoaded', ()=>{
+  const rw=document.getElementById('ritmoWrap');
+  if(rw) rw.style.display = (typeof idx!=='undefined' && idx===0) ? 'block' : 'none';
+  try{ renderRitmo(); }catch(e){}
+});
+
+</script>
+
+<script>
+(function(){
+  const KEY = 'painelTheme';
+  function apply(theme){
+    document.body.classList.remove('theme-light','theme-dark');
+    document.body.classList.add(theme === 'dark' ? 'theme-dark' : 'theme-light');
+  }
+  window.toggleTheme = function(){
+    const isDark = document.body.classList.contains('theme-dark');
+    const next = isDark ? 'light' : 'dark';
+    apply(next);
+    localStorage.setItem(KEY, next);
+    const btn = document.getElementById('themeBtn');
+    if(btn) btn.innerHTML = next === 'dark' ? '☀️ Tema' : '🌙 Tema';
+  }
+  window.addEventListener('load', () => {
+    const saved = localStorage.getItem(KEY) || 'dark'; // padrão: escuro (como painel original)
+    apply(saved);
+    const btn = document.getElementById('themeBtn');
+    if(btn) btn.innerHTML = saved === 'dark' ? '☀️ Tema' : '🌙 Tema';
+  });
+})();
+
+// ===== Tela 1: Ritmo necessário + Alerta (usa DATA.tx / filtros) =====
+function renderRitmo_unused1(){
+  const elDias = document.getElementById("rtDias");
+  const elFat  = document.getElementById("rtFatDia");
+  const elKg   = document.getElementById("rtKgDia");
+  const elAl   = document.getElementById("rtAlert");
+  if(!elDias || !elFat || !elKg || !elAl) return; // só existe na Tela 1
+
+  const diasNoMes = new Date(state.year, state.month, 0).getDate();
+  const hoje = new Date();
+  const ehMesAtual = (state.year===hoje.getFullYear() && state.month===hoje.getMonth()+1);
+  const ehMesmoMes = (state.month===hoje.getMonth()+1);
+
+  // Se for mês atual: usa dia de hoje. Se for mês passado/futuro: usa meio do mês como referência.
+  const diasPassados = Math.max(1, ehMesAtual ? hoje.getDate() : Math.ceil(diasNoMes/2));
+  const diasRestantes = Math.max(0, diasNoMes - diasPassados);
+
+  // Mês (ignora filtro de semana — queremos ritmo do mês inteiro)
+  const monthTx = filterTx({team: state.team, year: state.year, month: state.month, week: null});
+  const realizadoMes = monthTx.reduce((a,r)=>a+(r.valor||0),0);
+  const kgMes = monthTx.reduce((a,r)=>a+(r.kg||0),0);
+
+  // Meta do time (mesma lógica do painel: soma metas individuais)
+  const metaMes = Object.values(DATA.config.metaMensal||{}).reduce((a,v)=>a+(v||0),0);
+  const falta = Math.max(0, metaMes - realizadoMes);
+
+  // Converte falta em kg por aproximação usando preço médio do mês (se não tiver kg, assume 0)
+  const precoMedio = kgMes>0 ? (realizadoMes/kgMes) : 0;
+  const faltaKg = (precoMedio>0) ? (falta/precoMedio) : 0;
+
+  const ritmoNecFat = (diasRestantes>0) ? (falta/diasRestantes) : 0;
+  const ritmoNecKg  = (diasRestantes>0) ? (faltaKg/diasRestantes) : 0;
+
+  const ritmoAtualFat = (diasPassados>0) ? (realizadoMes/diasPassados) : 0;
+
+  elDias.textContent = diasRestantes.toLocaleString("pt-BR");
+  elFat.textContent  = ritmoNecFat.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  elKg.textContent   = Math.round(ritmoNecKg).toLocaleString("pt-BR") + " kg";
+
+  const ok = ritmoAtualFat >= ritmoNecFat;
+  elAl.classList.toggle("ok", ok);
+  elAl.classList.toggle("bad", !ok);
+  elAl.innerHTML = ok ? "🟢 Ritmo atual suficiente" : "🔴 Ritmo atual abaixo do necessário";
+}
+
+// injeta no render principal, sem alterar o resto
+(function(){
+  if(typeof render === "function" && !window.__RITMO_PATCH__){
+    window.__RITMO_PATCH__ = true;
+    const _old = render;
+    render = function(){
+      _old();
+      try{ renderRitmo(); }catch(e){}
+    };
+    try{ renderRitmo(); }catch(e){}
+  }
+})();
+
+</script>
+
+
+<script>
+/* ===== Tela 3: Quadro Meta x Realizado x Falta (por produto) ===== */
+(function(){
+  // Metas por produto (mensal) — ajuste mês a mês aqui
+  const META_PROD_MENSAL = {
+    "2026-01": {
+      "Cobre":   { r: 3000000.00, kg: 31312 },
+      "Barras":  { r: 1000000.00, kg: 32468 },
+      "Alumínio":{ r:  170000.00, kg:  5236 }
+    }
+  };
+
+  function ymKey(y,m){ return `${y}-${String(m).padStart(2,"0")}`; }
+
+  function normProdForBoard(p){
+    const t = (p||"").toLowerCase();
+    if(t.includes("cobre")) return "Cobre";
+    if(t.includes("barra")) return "Barras";
+    if(t.includes("alum"))  return "Alumínio";
+    return null;
+  }
+
+  function fmtKg(v){ return num(v||0,0) + " kg"; }
+
+  function blockHTML(nome, cols, valuesHtml){
+    return `
+      <div class="metaProd">
+        <div class="metaProdName">${nome}</div>
+        <div class="metaSubHead ${cols===3?'three':''}">
+          ${cols===2 ? `<div>R$</div><div>Kg</div>` : `<div>${valuesHtml.h1}</div><div>Kg</div><div>%</div>`}
+        </div>
+        <div class="metaVals ${cols===3?'three':''}">
+          ${valuesHtml.v}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderMetaProduto(){
+    const tbody = document.getElementById("metaProdRows");
+    if(!tbody) return;
+
+    const st = (typeof getFilterState === "function") ? getFilterState() : {year:2026, month:1, team:"Todos"};
+    const key = ymKey(st.year, st.month);
+    const metas = META_PROD_MENSAL[key];
+
+    if(!metas){
+      tbody.innerHTML = `<tr><td colspan="8" style="padding:14px; opacity:.85">Meta por produto não informada para <strong>${key}</strong>.</td></tr>`;
+      return;
+    }
+
+    // Realizado do mês (ignora filtro de semana)
+    const monthTx = filterTx({team: st.team, year: st.year, month: st.month, week: null});
+    const real = {"Cobre":{r:0,kg:0},"Barras":{r:0,kg:0},"Alumínio":{r:0,kg:0}};
+    monthTx.forEach(r=>{
+      const p = normProdForBoard(r.produto);
+      if(!p) return;
+      real[p].r += (r.valor||0);
+      const kgCorr = (typeof correctedKg==="function") ? correctedKg(r.nota, r.produto, (r.kg||0)) : (r.kg||0);
+      real[p].kg += kgCorr;
+    });
+
+    const order = ["Cobre","Barras","Alumínio"];
+
+    const totalMeta = {r:0,kg:0};
+    const totalReal = {r:0,kg:0};
+    order.forEach(p=>{
+      totalMeta.r += metas[p]?.r || 0;
+      totalMeta.kg += metas[p]?.kg || 0;
+      totalReal.r += real[p]?.r || 0;
+      totalReal.kg += real[p]?.kg || 0;
+    });
+
+    function pctMeta(realR, metaR){ return metaR>0 ? (realR/metaR*100) : 0; }
+
+    function rowHTML(nome, meta, rea, isTotal=false){
+      const pctM = pctMeta(rea.r, meta.r);
+      const w = Math.max(0, Math.min(100, pctM));
+      const gapR = Math.max(0, meta.r - rea.r);
+      const gapK = Math.max(0, meta.kg - rea.kg);
+
+      return `
+        <tr class="${isTotal?'totalRow':''}">
+          <td>${nome}</td>
+          <td class="right">${brl(meta.r)}</td>
+          <td class="right">${brl(rea.r)}</td>
+          <td class="right">
+            <div class="pctWrap">
+              <div class="pctBar" title="${pct(pctM,1)}"><div class="pctFill" style="width:${w}%"></div></div>
+              <div class="pctVal">${pct(pctM,1)}</div>
+            </div>
+          </td>
+          <td class="right">${brl(gapR)}</td>
+          <td class="right">${num(meta.kg,0)}</td>
+          <td class="right">${num(rea.kg,0)}</td>
+          <td class="right">${num(gapK,0)}</td>
+        </tr>
+      `;
+    }
+
+    let rows = "";
+    order.forEach(p=>{
+      rows += rowHTML(p, metas[p], real[p], false);
+    });
+    rows += rowHTML("Total Geral", totalMeta, totalReal, true);
+
+    tbody.innerHTML = rows;
+  }
+
+
+  function renderWeekCards(){
+    const row = document.getElementById("weekCardsRow");
+    if(!row) return;
+
+    const st = (typeof getFilterState === "function") ? getFilterState() : {year:2026, month:1, team:"Todos", week:null};
+    const key = ymKey(st.year, st.month);
+    const weeks = (DATA?.config?.filters?.weeksByYearMonth?.[key] || []).slice().sort((a,b)=>a-b);
+
+    if(!weeks.length){
+      row.innerHTML = `<div class="note" style="padding:10px 0; opacity:.8">Sem semanas cadastradas para <strong>${key}</strong>.</div>`;
+      return;
+    }
+
+    row.innerHTML = "";
+    weeks.forEach(w=>{
+      const tx = filterTx({team: st.team, year: st.year, month: st.month, week: w});
+      const fat = tx.reduce((a,r)=>a+(r.valor||0),0);
+      const kg  = tx.reduce((a,r)=>a+((typeof correctedKg==="function") ? correctedKg(r.nota, r.produto, (r.kg||0)) : (r.kg||0)),0);
+
+      const card = document.createElement("div");
+      card.className = "weekCard" + ((Number(st.week)===Number(w)) ? " active" : "");
+      card.innerHTML = `
+        <div class="wkTitle">Semana ${String(w).padStart(2,"0")}</div>
+        <div class="wkValue">${brl(fat)}</div>
+        <div class="wkMini">Kg na semana: ${num(kg,0)} kg</div>
+      `;
+      row.appendChild(card);
+    });
+  }
+
+
+  // Injeta no render principal, sem mexer no resto
+  if(typeof window.render === "function" && !window.__META_PROD_PATCH__){
+    window.__META_PROD_PATCH__ = true;
+    const _old = window.render;
+    window.render = function(){
+      _old();
+      try{ renderMetaProduto(); }catch(e){}
+      try{ renderWeekCards(); }catch(e){}
+    };
+    try{ renderMetaProduto(); }catch(e){}
+      try{ renderWeekCards(); }catch(e){}
+  } else {
+    document.addEventListener("DOMContentLoaded", ()=>{ try{ renderMetaProduto(); }catch(e){}
+      try{ renderWeekCards(); }catch(e){} });
+  }
+})();
+</script>
+
+</body>
+</html>
+
+<script>
+(function(){
+  function qsa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
+  function qs(sel, root=document){ return root.querySelector(sel); }
+
+  let idx = 0;
+  function apply(){
+    const slides = qsa('.carouselSlide');
+    slides.forEach((s,i)=> s.classList.toggle('active', i===idx));
+    const info = qs('#slideInfo'); if(info) info.textContent = `${idx+1}/${slides.length}`;
+    qsa('.carouselDot').forEach(d=> d.classList.toggle('active', Number(d.dataset.slide)===idx));
+    const rw=document.getElementById('ritmoWrap'); if(rw) rw.style.display = (idx===0?'block':'none');
+    if(idx===0){ try{ renderRitmo(); }catch(e){} }
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  function next(){ const n=qsa('.carouselSlide').length; idx=(idx+1)%n; 
+  // Expor controles do carrossel para o toggle Auto
+  window.__carouselNext = next;
+  window.__carouselPrev = prev;
+  window.__carouselGo = (i)=>{ idx = (i+slides.length)%slides.length; apply(); };
+  window.__carouselCount = ()=> slides.length;
+apply(); }
+  function prev(){ const n=qsa('.carouselSlide').length; idx=(idx-1+n)%n; apply(); }
+
+  window.addEventListener('DOMContentLoaded', ()=>{
+    if(!qs('#carouselViewport')) return;
+    qs('#slideNext')?.addEventListener('click', next);
+    qs('#slidePrev')?.addEventListener('click', prev);
+    qsa('.carouselDot').forEach(d=> d.addEventListener('click', ()=>{ idx=Number(d.dataset.slide)||0; apply(); }));
+    document.addEventListener('keydown', (e)=>{ if(e.key==='ArrowRight') next(); if(e.key==='ArrowLeft') prev(); });
+    apply();
+  });
+})();
+
+// ===== Tela 1: Ritmo necessário + Alerta (usa DATA.tx / filtros) =====
+function renderRitmo_unused2(){
+  const elDias = document.getElementById("rtDias");
+  const elFat  = document.getElementById("rtFatDia");
+  const elKg   = document.getElementById("rtKgDia");
+  const elAl   = document.getElementById("rtAlert");
+  if(!elDias || !elFat || !elKg || !elAl) return; // só existe na Tela 1
+
+  const diasNoMes = new Date(state.year, state.month, 0).getDate();
+  const hoje = new Date();
+  const ehMesAtual = (state.year===hoje.getFullYear() && state.month===hoje.getMonth()+1);
+
+  // Se for mês atual: usa dia de hoje. Se for mês passado/futuro: usa meio do mês como referência.
+  const diasPassados = Math.max(1, ehMesAtual ? hoje.getDate() : Math.ceil(diasNoMes/2));
+  const diasRestantes = Math.max(0, diasNoMes - diasPassados);
+
+  // Mês (ignora filtro de semana — queremos ritmo do mês inteiro)
+  const monthTx = filterTx({team: state.team, year: state.year, month: state.month, week: null});
+  const realizadoMes = monthTx.reduce((a,r)=>a+(r.valor||0),0);
+  const kgMes = monthTx.reduce((a,r)=>a+(r.kg||0),0);
+
+  // Meta do time (mesma lógica do painel: soma metas individuais)
+  const metaMes = Object.values(DATA.config.metaMensal||{}).reduce((a,v)=>a+(v||0),0);
+  const falta = Math.max(0, metaMes - realizadoMes);
+
+  // Converte falta em kg por aproximação usando preço médio do mês (se não tiver kg, assume 0)
+  const precoMedio = kgMes>0 ? (realizadoMes/kgMes) : 0;
+  const faltaKg = (precoMedio>0) ? (falta/precoMedio) : 0;
+
+  const ritmoNecFat = (diasRestantes>0) ? (falta/diasRestantes) : 0;
+  const ritmoNecKg  = (diasRestantes>0) ? (faltaKg/diasRestantes) : 0;
+
+  const ritmoAtualFat = (diasPassados>0) ? (realizadoMes/diasPassados) : 0;
+
+  elDias.textContent = diasRestantes.toLocaleString("pt-BR");
+  elFat.textContent  = ritmoNecFat.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  elKg.textContent   = Math.round(ritmoNecKg).toLocaleString("pt-BR") + " kg";
+
+  const ok = ritmoAtualFat >= ritmoNecFat;
+  elAl.classList.toggle("ok", ok);
+  elAl.classList.toggle("bad", !ok);
+  elAl.innerHTML = ok ? "🟢 Ritmo atual suficiente" : "🔴 Ritmo atual abaixo do necessário";
+}
+
+// injeta no render principal, sem alterar o resto
+(function(){
+  if(typeof render === "function" && !window.__RITMO_PATCH__){
+    window.__RITMO_PATCH__ = true;
+    const _old = render;
+    render = function(){
+      _old();
+      try{ renderRitmo(); }catch(e){}
+    };
+    try{ renderRitmo(); }catch(e){}
+  }
+})();
+
+</script>
