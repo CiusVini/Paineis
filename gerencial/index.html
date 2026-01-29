@@ -239,6 +239,144 @@
   background: rgba(255, 204, 102, 0.08);
 }
 
+
+/* ===== Mobile hardening ===== */
+*,*::before,*::after{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+.container, .wrap, main{max-width:100%}
+table{max-width:100%}
+.tableWrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+th,td{white-space:nowrap}
+
+  body.filters-open .topControls{
+    display:flex;
+    position:fixed;
+    left:12px; right:12px;
+    top:64px;
+    z-index:9999;
+    padding:12px;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:16px;
+    background:rgba(10,16,32,.96);
+    backdrop-filter: blur(10px);
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  body.filters-open::before{
+    content:"";
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.55);
+    z-index:9998;
+  }
+  .cards{grid-template-columns:1fr !important}
+}
+
+
+/* ===== Mobile UX: sticky filters + overflow safe ===== */
+@media (max-width: 640px){
+  header, .header, .topbar{
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding-top: env(safe-area-inset-top);
+    background: rgba(10,16,32,.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+
+  .topControls{
+    position: sticky;
+    top: 56px;
+    z-index: 999;
+    background: rgba(10,16,32,.90);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    padding: 10px 10px 12px;
+    margin: 0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  body.filters-collapsed .topControls{display:none}
+  #filtersToggle{display:inline-flex;align-items:center;gap:8px;margin-left:auto}
+
+  /* Cards 1 column, prevent overflow */
+  .cards{grid-template-columns:1fr !important}
+  .card h2{font-size:14px}
+  .card .value{font-size: clamp(22px, 7vw, 30px); line-height:1.1; white-space:normal; word-break:break-word}
+
+  /* Table: allow scroll */
+  .tableWrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:max-content; min-width:100%}
+  th,td{white-space:nowrap}
+}
+
+
+
+/* ===== Mobile clean reading ===== */
+@media (max-width: 640px){
+  html{font-size:13px}
+  body{overflow-x:hidden}
+  h1{font-size:22px !important; line-height:1.15}
+  h2{font-size:18px !important}
+  h3{font-size:16px !important}
+
+  /* Numbers smaller and never overlap */
+  .kpiValue, .big, .value{
+    font-size: clamp(18px, 6.2vw, 26px) !important;
+    line-height:1.15 !important;
+    white-space:normal !important;
+    word-break:break-word !important;
+  }
+  .sub, .muted, small{font-size:12px !important}
+
+  /* Grids become 1 column and allow shrinking */
+  .grid4,.grid3,.grid2,.cardsTop,.cards{grid-template-columns:1fr !important}
+  .card,.panel{min-width:0; max-width:100%}
+
+  /* Tables: natural horizontal scroll */
+  table{
+    display:block;
+    width:100%;
+    max-width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  thead,tbody,tr{width:100%}
+  th,td{white-space:nowrap}
+
+  /* tighter paddings for clean */
+  .card,.panel{padding:12px !important}
+}
+
+/* Menu button fixed in header area */
+.sb-fab{
+  position:fixed !important;
+  top: 12px !important;
+  right: 12px !important;
+  bottom: auto !important;
+  z-index: 2000 !important;
+}
+
+
+@media (max-width: 640px){
+  /* Caixa: rolagem lateral natural + primeira coluna fixa */
+  .cashWrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  #cashPanel table.clean-table{min-width:640px;} /* garante espaço para colunas */
+  #cashPanel table.clean-table th:first-child,
+  #cashPanel table.clean-table td:first-child{
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: rgba(10,16,32,.96);
+  }
+  #cashPanel table.clean-table thead th:first-child{z-index:3;}
+
+  /* Resumo de caixa: um abaixo do outro */
+  .cashSummaryGrid{grid-template-columns: 1fr !important;}
+}
+
 </style>
 <style>
 .dre-positive {
@@ -332,6 +470,89 @@ function calcularTotalGeralProjecao() {
 .dualCharts, .chartWrap, .chart, .chart svg { overflow: visible !important; }
 
 </style>
+
+<style id="sb-nav-style">
+.sb-fab{
+  position:fixed; right:16px; bottom:16px; z-index:9999;
+  width:52px; height:52px; border-radius:16px;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(17,26,51,.88);
+  border:1px solid rgba(122,162,255,.25);
+  box-shadow:0 14px 40px rgba(0,0,0,.45);
+  color:#e9edf7; font-size:22px; font-weight:900;
+  cursor:pointer; user-select:none;
+  -webkit-tap-highlight-color: transparent;
+}
+.sb-fab:active{transform:translateY(1px)}
+.sb-overlay{
+  position:fixed; inset:0; z-index:9998;
+  background:rgba(0,0,0,.45);
+  backdrop-filter: blur(2px);
+  opacity:0; pointer-events:none;
+  transition: opacity .18s ease;
+}
+.sb-drawer{
+  position:fixed; top:0; right:0; height:100vh; width:min(86vw, 360px);
+  z-index:9999;
+  transform:translateX(110%);
+  transition: transform .22s ease;
+  background: linear-gradient(180deg, rgba(17,26,51,.98), rgba(11,16,32,.98));
+  border-left:1px solid rgba(122,162,255,.22);
+  box-shadow:-18px 0 60px rgba(0,0,0,.55);
+  padding:18px 16px;
+}
+.sb-open .sb-overlay{opacity:1; pointer-events:auto}
+.sb-open .sb-drawer{transform:translateX(0)}
+.sb-drawer h3{
+  margin:0 0 10px; font-size:14px; letter-spacing:.2px;
+  color:rgba(233,237,247,.92);
+}
+.sb-drawer .sb-sub{margin:0 0 14px; font-size:12px; color:rgba(233,237,247,.65)}
+.sb-links{display:flex; flex-direction:column; gap:10px}
+.sb-link{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px;
+  padding:12px 12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.10);
+  color:#e9edf7; text-decoration:none;
+  font-weight:800;
+}
+.sb-link small{font-weight:700; color:rgba(233,237,247,.65)}
+.sb-link:hover{background:rgba(255,255,255,.06)}
+.sb-close{
+  margin-top:14px;
+  width:100%;
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.12);
+  color:#e9edf7; font-weight:900;
+  cursor:pointer;
+}
+@media (max-width: 820px){
+  .sb-fab{right:12px; bottom:12px; width:48px; height:48px; border-radius:14px}
+}
+</style>
+
+
+<style id="sb-responsive">
+@media (max-width: 820px){
+  .wrap{padding:14px 10px}
+  h1{font-size:16px}
+  .sub{font-size:11px}
+  .controls{gap:8px}
+  select, button{padding:9px 10px; border-radius:12px}
+  .kpis{grid-template-columns:1fr !important}
+  .grid{grid-template-columns:1fr !important}
+  .scenario-grid{grid-template-columns:1fr !important}
+  .sim-grid{grid-template-columns:1fr !important}
+  .tables{overflow-x:auto; -webkit-overflow-scrolling:touch}
+  table.clean-table{min-width:820px}
+}
+</style>
+
 </head>
 <body>
 <header>
@@ -341,10 +562,11 @@ function calcularTotalGeralProjecao() {
 <div class="dot"></div>
 <div>
 <h1>Painel Gerencial — Diretoria</h1>
+<button id="filtersToggle" class="btn" type="button" title="Abrir filtros">⚙️ Filtros</button>
 <div class="sub" id="subtitle">Metas • Margem • Custos • Resultado • Ações</div>
 </div>
 </div>
-<div class="controls">
+<div class="topControls">
 <select aria-label="Mês" id="periodSelect">
 <option value="jan26">Jan/2026</option>
 </select>
@@ -363,7 +585,7 @@ function calcularTotalGeralProjecao() {
 <section class="panel" id="cashPanel">
 <h2>Previsibilidade de Caixa — Mês Corrente</h2>
 
-<table aria-label="Previsibilidade de caixa" class="clean-table">
+<div class="tableWrap cashWrap"><table aria-label="Previsibilidade de caixa" class="clean-table">
 <thead>
 <tr>
 <th>Conta</th>
@@ -417,7 +639,7 @@ function calcularTotalGeralProjecao() {
 <td id="cash_total_proj">—</td>
 </tr>
 </tbody>
-<tr class="comissaria"><td>Comissária</td><td>—</td><td>R$ 1.467.106,78</td><td>R$ 108.056,34</td><td>R$ 1.575.163,12</td></tr></table>
+<tr class="comissaria"><td>Comissária</td><td>—</td><td>R$ 1.389.207,03</td><td>R$ 185.966,09</td><td>R$ 1.575.173,12</td></tr></table></div>
 </section>
 <div class="panel" id="cashResumePanel" style="margin-top:16px;">
   <div class="panel-header" style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
@@ -427,7 +649,7 @@ function calcularTotalGeralProjecao() {
     </div>
   </div>
 
-  <div style="margin-top:14px; display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
+  <div class="cashSummaryGrid" style="margin-top:14px; display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
     <div style="border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:12px; background:rgba(255,255,255,.03);">
       <div style="font-size:12px; opacity:.75;">Total de despesas do mês (Pago + A pagar)</div>
       <div id="simContasMes" style="margin-top:4px; font-size:20px; font-weight:900;">—</div>
@@ -456,7 +678,7 @@ function calcularTotalGeralProjecao() {
 </div>
 </main>
 <script>
-const DATA = {"jan26": {"label": "jan/26", "updatedAt": "Relatório atualizado | 29/01/2026 10:44", "mensal": {"pesoRendimentosKg": {"Cobre": 25943, "Barras": 23895.7, "Alumínio": 2204, "Total": 52043}, "totals": {"meta": 4170000.0, "realizado": 3286969.64, "pct": 78.8, "falta": 883030.36, "kg": 52043}, "families": [{"name": "Cobre", "meta": 3000000.0, "realizado": 2484758.3, "pct": 82.8, "falta": 515241.7, "kg": 25943}, {"name": "Barras", "meta": 1000000.0, "realizado": 730333.84, "pct": 73.0, "falta": 269666.16, "kg": 23895.7}, {"name": "Alumínio", "meta": 170000.0, "realizado": 71877.5, "pct": 42.3, "falta": 98122.5, "kg": 2204}, {"name": "Total", "meta": 4170000.0, "realizado": 3286969.64, "pct": 78.8, "falta": 883030.36, "kg": 52043}], "margins": [{"name": "Cobre", "precoMedio": 95.78, "lucroBruto": 285110.41, "margemKg": 10.99}, {"name": "Barras", "precoMedio": 30.56, "lucroBruto": 142980.05, "margemKg": 5.98}, {"name": "Alumínio", "precoMedio": 32.61, "lucroBruto": 13069.84, "margemKg": 5.93}, {"name": "Total", "precoMedio": null, "lucroBruto": 441160.3, "margemKg": 8.48}], "despesas": [{"name": "Opex", "orcado": 300000.0, "pago": 220999.24, "pct": 74.0, "custoKg": 4.25, "extra": "A pagar 32.378,74"}, {"name": "Impostos", "orcado": 35000.0, "pago": 38154.75, "pct": 109.0, "custoKg": 0.73, "extra": "A pagar 0,00"}, {"name": "Juros e Tarifas", "orcado": 115000.0, "pago": 48522.46, "pct": 42.0, "custoKg": 0.93, "extra": "A pagar 50.000,00"}, {"name": "Total Operação", "orcado": 450000.0, "pago": 307676.45, "pct": 68.0, "custoKg": 5.91, "extra": "A pagar 82.378,74"}], "cpv": {"materiaPrima": {"orcado": 3300000.0, "pago": 1967470.91, "aPagar": 310103.68, "custoKg": 37.8}, "maoDeObra": {"orcado": 200000.0, "pago": 60012.5, "aPagar": 0.0, "custoKg": 1.15}, "total": {"orcado": 3500000.0, "pago": 3494590.19, "aPagar": 418160.02, "custoKg": 67.15}}, "projecao": {"grossMarginPct": 0.13, "despesasOper": {"pago": 307676.45, "aPagar": 82378.74, "projMes": 390055.19}, "cpv": {"pago": 3494590.19, "aPagar": 418160.02, "projMes": 3912750.21}, "total": {"pago": 3802266.64, "aPagar": 500538.76, "projMes": 4302805.4}, "faturamentoBreakEven": 0.0, "faturamentoAdicional": 0.0}, "resultado": {"lucroBrutoPrev": 528500.0, "lucroBrutoReal": 441160.3, "margemKgPrev": 7.0, "margemKgReal": 8.48, "custoOperPrev": 450000.0, "custoOperReal": 307676.45, "custoKgPrev": 5.96, "custoKgReal": 5.91, "netPrev": 78500.0, "netReal": 133483.85, "netKgPrev": 1.04, "netKgReal": 2.56}}}};
+const DATA = {"jan26": {"label": "jan/26", "updatedAt": "Relatório atualizado \| 28/01/2026 10:28", "mensal": {"pesoRendimentosKg": {"Cobre": 25943, "Barras": 23895.7, "Alumínio": 2204, "Total": 52043}, "totals": {"meta": 4170000.0, "realizado": 3286969.64, "pct": 78.8, "falta": 883030.36, "kg": 52043}, "families": [{"name": "Cobre", "meta": 3000000.0, "realizado": 2484758.3, "pct": 82.8, "falta": 515241.7, "kg": 25943}, {"name": "Barras", "meta": 1000000.0, "realizado": 730333.84, "pct": 73.0, "falta": 269666.16, "kg": 23895.7}, {"name": "Alumínio", "meta": 170000.0, "realizado": 71877.5, "pct": 42.3, "falta": 98122.5, "kg": 2204}, {"name": "Total", "meta": 4170000.0, "realizado": 3286969.64, "pct": 78.8, "falta": 883030.36, "kg": 52043}], "margins": [{"name": "Cobre", "precoMedio": 95.78, "lucroBruto": 285110.41, "margemKg": 10.99}, {"name": "Barras", "precoMedio": 30.56, "lucroBruto": 142980.05, "margemKg": 5.98}, {"name": "Alumínio", "precoMedio": 32.61, "lucroBruto": 13069.84, "margemKg": 5.93}, {"name": "Total", "precoMedio": null, "lucroBruto": 441160.3, "margemKg": 8.48}], "despesas": [{"name": "Opex", "orcado": 300000.0, "pago": 220999.24, "pct": 74.0, "custoKg": 4.25, "extra": "A pagar 32.378,74"}, {"name": "Impostos", "orcado": 35000.0, "pago": 38154.75, "pct": 109.0, "custoKg": 0.73, "extra": "A pagar 0,00"}, {"name": "Juros e Tarifas", "orcado": 115000.0, "pago": 48522.46, "pct": 42.0, "custoKg": 0.93, "extra": "A pagar 50.000,00"}, {"name": "Total Operação", "orcado": 450000.0, "pago": 307676.45, "pct": 68.0, "custoKg": 5.91, "extra": "A pagar 82.378,74"}], "cpv": {"materiaPrima": {"orcado": 3300000.0, "pago": 1967470.91, "aPagar": 310103.68, "custoKg": 37.8}, "maoDeObra": {"orcado": 200000.0, "pago": 60012.5, "aPagar": 0.0, "custoKg": 1.15}, "total": {"orcado": 3500000.0, "pago": 3494590.19, "aPagar": 418160.02, "custoKg": 67.15}}, "projecao": {"grossMarginPct": 0.13, "despesasOper": {"pago": 307676.45, "aPagar": 82378.74, "projMes": 390055.19}, "cpv": {"pago": 3494590.19, "aPagar": 418160.02, "projMes": 3912750.21}, "total": {"pago": 3802266.64, "aPagar": 500538.76, "projMes": 4302805.4}, "faturamentoBreakEven": 0.0, "faturamentoAdicional": 0.0}, "resultado": {"lucroBrutoPrev": 528500.0, "lucroBrutoReal": 441160.3, "margemKgPrev": 7.0, "margemKgReal": 8.48, "custoOperPrev": 450000.0, "custoOperReal": 307676.45, "custoKgPrev": 5.96, "custoKgReal": 5.91, "netPrev": 78500.0, "netReal": 133483.85, "netKgPrev": 1.04, "netKgReal": 2.56}}}};
 
 
 function brl(v){
@@ -832,5 +1054,36 @@ function recalcularCaixaOperacional() {
 setTimeout(recalcularCaixaOperacional, 50);
 </script>
 
+
+<div class="sb-overlay" id="sbOverlay" aria-hidden="true"></div>
+<nav class="sb-drawer" id="sbDrawer" aria-label="Menu">
+  <h3>Menu</h3>
+  <p class="sb-sub">Acesse os painéis</p>
+  <div class="sb-links">
+    <a class="sb-link" href="../index.html">🏠 <span>Início</span></a>
+    <a class="sb-link" href="../comercial/">📊 <span>Painel Comercial</span> <small>Abrir</small></a>
+  </div>
+  <button class="sb-close" id="sbCloseBtn" type="button">Fechar</button>
+</nav>
+<div class="sb-fab" id="sbFab" title="Menu" aria-label="Abrir menu">☰</div>
+<script id="sb-nav-script">
+(function(){
+  var root = document.documentElement;
+  var fab = document.getElementById('sbFab');
+  var overlay = document.getElementById('sbOverlay');
+  var closeBtn = document.getElementById('sbCloseBtn');
+  function open(){ root.classList.add('sb-open'); }
+  function close(){ root.classList.remove('sb-open'); }
+  function toggle(){ root.classList.contains('sb-open') ? close() : open(); }
+  if(fab) fab.addEventListener('click', toggle);
+  if(overlay) overlay.addEventListener('click', close);
+  if(closeBtn) closeBtn.addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') close(); });
+})();
+
+
+// ===== Mobile: sticky filters (collapse) =====
+
+</script>
 </body>
 </html>
